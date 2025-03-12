@@ -33,4 +33,9 @@ export default defineConfig({
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
   },
+  server: {
+    proxy: {
+      "/api": process.env.VITE_API_URL || "http://localhost:5000", // ✅ Uses env variable for flexibility
+    },
+  },
 });
