@@ -1,0 +1,75 @@
+import { Link } from "wouter";
+
+export function Footer() {
+  return (
+    <footer className="bg-background border-t">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div>
+            <div className="flex items-center justify-center md:justify-start">
+              {" "}
+              {/* Flex container for logo and app name */}
+              <img
+                src="../../assets/gift&sons.png"
+                alt="Gift & Sons Logo"
+                className="h-16 w-16 mr-2" // Add margin-right for spacing
+              />
+              <h3 className="text-primary text-lg font-semibold">
+                Gift & Sons
+              </h3>
+            </div>
+            <p className="text-muted-foreground mt-4">
+              {" "}
+              {/* Add margin-top for spacing */}
+              Your trusted partner in real estate, providing exceptional service
+              and prime properties.
+            </p>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/properties">
+                  <a className="text-muted-foreground hover:text-primary">
+                    Properties
+                  </a>
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact">
+                  <a className="text-muted-foreground hover:text-primary">
+                    Contact Us
+                  </a>
+                </Link>
+              </li>
+              <li>
+                <Link href="/admin">
+                  <a className="text-muted-foreground hover:text-primary">
+                    Admin Dashboard
+                  </a>
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Contact Info</h3>
+            <ul className="space-y-2 text-muted-foreground">
+              <li>20117, Biashara Street, Naivasha, Kenya</li>
+              <li>Main Contact: +254720464627</li>
+              <li>Substitue Contact 1: +254716080793 / Dave</li>
+              <li>Substitue Contact 2: +254780464626 / Gladwel</li>
+              <li>Email: giftnsons@gmail.com</li>
+              <li>Hours: 24/7</li>
+            </ul>
+          </div>
+        </div>
+        <div className="border-t mt-8 pt-8 text-center text-muted-foreground">
+          <p>
+            &copy; {new Date().getFullYear()} Gift And Sons Properties
+            International. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}

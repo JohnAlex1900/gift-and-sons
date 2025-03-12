@@ -1,0 +1,81 @@
+import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { auth } from "@/lib/firebase";
+
+async function throwIfResNotOk(res: Response) {
+  if (!res.ok) {
+    const text = (await res.text()) || res.statusText;
+    throw new Error(`${res.status}: ${text}`);
+  }
+}
+
+// Function to make authenticated API requests
+export async function apiRequest(
+  method: string,
+  url: string,
+  data?: unknown
+): Promise<Response> {
+  const user = auth.currentUser;
+  const token = user ? await user.getIdToken() : null;
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, {
+    method,
+    headers,
+    body: data ? JSON.stringify(data) : undefined,
+    credentials: "include",
+  });
+
+  await throwIfResNotOk(res);
+  return res;
+}
+
+// Query function with authentication
+type UnauthorizedBehavior = "returnNull" | "throw";
+export const getQueryFn =
+  <T>({ on401: unauthorizedBehavior }: { on401: UnauthorizedBehavior }) =>
+  async ({ queryKey }: { queryKey: readonly unknown[] }): Promise<T> => {
+    const user = auth.currentUser;
+    const token = user ? await user.getIdToken() : null;
+
+    const headers: HeadersInit = token
+      ? { Authorization: `Bearer ${token}` }
+      : {};
+
+    const res = await fetch(queryKey[0] as string, {
+      credentials: "include",
+      headers,
+    });
+
+    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+      return null as unknown as T; // Explicitly cast null as T
+    }
+
+    await throwIfResNotOk(res);
+    return (await res.json()) as T;
+  };
+
+// Initialize QueryClient with default options
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      queryFn: getQueryFn({ on401: "throw" }),
+      refetchInterval: false,
+      refetchOnWindowFocus: false,
+      staleTime: Infinity,
+      retry: false,
+      suspense: false,
+      useErrorBoundary: true,
+    },
+    mutations: {
+      retry: false,
+      useErrorBoundary: true,
+    },
+  },
+});
