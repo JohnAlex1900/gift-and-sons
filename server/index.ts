@@ -10,10 +10,17 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load .env file
-dotenv.config({ path: path.resolve(__dirname, "./.env") });
+const envPath =
+  process.env.NODE_ENV === "production"
+    ? path.resolve(__dirname, "../server/.env") // Adjust if needed
+    : path.resolve(__dirname, "./.env"); // For development
 
-console.log("UPLOADTHING_SECRET:", process.env.UPLOADTHING_TOKEN);
+dotenv.config({ path: envPath });
+
+console.log(
+  "UPLOADTHING_SECRET:",
+  process.env.UPLOADTHING_TOKEN || "Not Loaded"
+);
 
 const app = express();
 app.use(express.json());
