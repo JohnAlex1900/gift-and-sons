@@ -2,18 +2,20 @@ import { Hero } from "@/components/Hero";
 import { PropertyCard } from "@/components/PropertyCard";
 import { useQuery } from "@tanstack/react-query";
 import type { Property } from "@shared/schema";
+import axios from "axios";
 
 export default function Home() {
-  // Initialize the query with proper error handling
+  // Fetch featured properties
   const {
-    data: featuredProperties,
+    data: featuredProperties = [],
     isLoading,
+    isError,
     error,
   } = useQuery<Property[]>({
     queryKey: ["/api/properties/featured"],
-    // Add error handling
-    onError: (error) => {
-      console.error("Failed to fetch featured properties:", error);
+    queryFn: async () => {
+      const response = await axios.get<Property[]>("/api/properties/featured");
+      return response.data;
     },
   });
 
@@ -38,7 +40,8 @@ export default function Home() {
   }
 
   // Show error state
-  if (error) {
+  if (isError) {
+    console.error("Failed to fetch featured properties:", error);
     return (
       <div>
         <Hero />
@@ -55,12 +58,11 @@ export default function Home() {
   return (
     <div>
       <Hero />
-
       <section className="py-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold mb-8">Featured Properties</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProperties?.map((property) => (
+            {featuredProperties.map((property: Property) => (
               <PropertyCard key={property.id} property={property} />
             ))}
           </div>
@@ -87,7 +89,6 @@ export default function Home() {
                   title: "Premium Properties",
                   description: "Carefully curated luxury real estate portfolio",
                 },
-
                 {
                   title: "Site Tours",
                   description:

@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import image from "../../public/gift-and-sons.png";
 
 export function Footer() {
   return (
@@ -10,7 +11,7 @@ export function Footer() {
               {" "}
               {/* Flex container for logo and app name */}
               <img
-                src="../../assets/gift&sons.png"
+                src={image}
                 alt="Gift & Sons Logo"
                 className="h-16 w-16 mr-2" // Add margin-right for spacing
               />

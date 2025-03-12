@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { auth } from "@/lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { PiSignOutBold } from "react-icons/pi";
+import image from "../../public/gift-and-sons.png";
 
 export function Navbar() {
   const [user] = useAuthState(auth);
@@ -16,7 +17,7 @@ export function Navbar() {
             <Link href="/" className="flex items-center">
               <img
                 className="h-8 w-auto mr-2" // Add margin-right for spacing
-                src="../../assets/gift&sons.png"
+                src={image}
                 alt="Logo"
               />
               <a className="text-2xl font-bold text-primary">Gift & Sons</a>
