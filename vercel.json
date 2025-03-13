@@ -13,13 +13,13 @@
     },
     {
       "src": "/(.*)",
-      "dest": "dist/public/$1",
-      "headers": { "Cache-Control": "public, max-age=31536000, immutable" }
+      "dest": "dist/public/$1"
+    },
+    {
+      "src": "/",
+      "dest": "dist/public/index.html"
     }
   ],
-  "static": {
-    "directory": "dist/public"
-  },
   "env": {
     "NODE_ENV": "production"
   }
