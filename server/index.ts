@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic, log } from "./vite";
+import cors from "cors";
 
 import dotenv from "dotenv";
 import path from "path";
@@ -23,6 +24,12 @@ console.log(
 );
 
 const app = express();
+app.use(
+  cors({
+    origin: ["http://localhost:5000", "https://gift-and-sons.vercel.app"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

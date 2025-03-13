@@ -3,6 +3,13 @@ import { SearchFilters } from "@/components/SearchFilters";
 import { useQuery } from "@tanstack/react-query";
 import { type Property } from "@shared/schema";
 import { useState } from "react";
+import API_URL from "@/api"; // Import API base URL
+
+async function fetchProperties() {
+  const response = await fetch(`${API_URL}/api/properties`);
+  if (!response.ok) throw new Error("Failed to fetch properties");
+  return response.json();
+}
 
 export default function Properties() {
   const [filters, setFilters] = useState<{
@@ -12,22 +19,18 @@ export default function Properties() {
   }>({});
 
   const { data: properties, isLoading } = useQuery<Property[]>({
-    queryKey: ["/api/properties", filters],
+    queryKey: ["properties", filters],
+    queryFn: fetchProperties, // Use API call function
   });
 
   const filteredProperties = properties?.filter((property) => {
     return Object.entries(filters).every(([key, value]) => {
       if (!value) return true;
-
       if (key === "minPrice" && typeof value === "number")
         return property.price >= value;
       if (key === "maxPrice" && typeof value === "number")
         return property.price <= value;
-
-      if (key in property) {
-        return (property as any)[key] === value;
-      }
-
+      if (key in property) return (property as any)[key] === value;
       return true;
     });
   });
