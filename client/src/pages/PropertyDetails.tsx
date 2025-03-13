@@ -19,11 +19,13 @@ export default function PropertyDetails() {
   const [inquiryMessage, setInquiryMessage] = useState("");
   const [inquiryNumber, setInquiryNumber] = useState("");
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const { data: property, isLoading } = useQuery<Property>({
     queryKey: [`/api/properties/${id}`],
     queryFn: async () => {
       if (!id) return null;
-      const response = await fetch(`/api/properties/${id}`);
+      const response = await fetch(`${API_URL}/properties/${id}`);
       if (!response.ok) {
         throw new Error("Failed to fetch property details");
       }

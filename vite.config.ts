@@ -9,18 +9,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "VITE"); // ✅ Load environment variables
+  const env = loadEnv(mode, process.cwd(), "VITE");
 
   const plugins = [react(), runtimeErrorOverlay(), themePlugin()];
 
-  // Conditionally import the Replit plugin
-  if (
-    process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-  ) {
-    import("@replit/vite-plugin-cartographer").then((m) => {
-      plugins.push(m.cartographer()); // ✅ Push plugin dynamically
-    });
+  if (process.env.NODE_ENV !== "production" && process.env.REPL_ID) {
+    import("@replit/vite-plugin-cartographer")
+      .then(({ cartographer }) => {
+        plugins.push(cartographer());
+      })
+      .catch((error) => {
+        console.warn("Failed to load @replit/vite-plugin-cartographer", error);
+      });
   }
 
   return {
@@ -33,12 +33,12 @@ export default defineConfig(({ mode }) => {
     },
     root: path.resolve(__dirname, "client"),
     build: {
-      outDir: path.resolve(__dirname, "dist", "public"),
+      outDir: path.resolve(__dirname, "dist", "public"), // ✅ Frontend output in a clearer location
       emptyOutDir: true,
     },
     server: {
       proxy: {
-        "/": env.VITE_API_URL || "http://localhost:5000", // ✅ Uses loaded env variable
+        "/api": env.VITE_API_URL || "http://localhost:5000", // ✅ Only proxy API calls
       },
     },
   };

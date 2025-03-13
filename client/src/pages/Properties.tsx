@@ -17,12 +17,9 @@ export default function Properties() {
   const { data: properties, isLoading } = useQuery<Property[]>({
     queryKey: ["/api/properties", filters],
     queryFn: async () => {
-      const response = await axios.get<Property[]>(
-        `${API_URL}/api/properties`,
-        {
-          withCredentials: true, // Ensure cookies/session data are included
-        }
-      );
+      const response = await axios.get<Property[]>(`${API_URL}/properties`, {
+        withCredentials: true, // Ensure cookies/session data are included
+      });
       return response.data;
     },
   });
