@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       proxy: {
-        "/api": env.VITE_API_URL || "http://localhost:5000", // ✅ Uses loaded env variable
+        "/": env.VITE_API_URL || "http://localhost:5000", // ✅ Uses loaded env variable
       },
     },
   };

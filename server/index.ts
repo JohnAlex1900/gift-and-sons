@@ -26,7 +26,11 @@ console.log(
 const app = express();
 app.use(
   cors({
-    origin: ["http://localhost:5000", "https://gift-and-sons.vercel.app"],
+    origin: [
+      "http://localhost:5000",
+      "https://gift-and-sons.vercel.app",
+      "https://giftandsonsinternational.com",
+    ],
     credentials: true,
   })
 );
