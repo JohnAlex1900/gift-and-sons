@@ -4,8 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import type { Property } from "@shared/schema";
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 export default function Home() {
   // Fetch featured properties
   const {
@@ -16,9 +14,7 @@ export default function Home() {
   } = useQuery<Property[]>({
     queryKey: ["/api/properties/featured"],
     queryFn: async () => {
-      const response = await axios.get<Property[]>(
-        `${API_URL}/properties/featured`
-      );
+      const response = await axios.get<Property[]>(`/api/properties/featured`);
       return response.data;
     },
   });

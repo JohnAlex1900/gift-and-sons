@@ -36,10 +36,5 @@ export default defineConfig(({ mode }) => {
       outDir: path.resolve(__dirname, "dist", "public"), // ✅ Frontend output in a clearer location
       emptyOutDir: true,
     },
-    server: {
-      proxy: {
-        "/api": env.VITE_API_URL || "http://localhost:5000", // ✅ Only proxy API calls
-      },
-    },
   };
 });

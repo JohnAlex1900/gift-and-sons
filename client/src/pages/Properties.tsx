@@ -12,12 +12,10 @@ export default function Properties() {
     [key: string]: any;
   }>({});
 
-  const API_URL = import.meta.env.VITE_API_URL;
-
   const { data: properties, isLoading } = useQuery<Property[]>({
     queryKey: ["/api/properties", filters],
     queryFn: async () => {
-      const response = await axios.get<Property[]>(`${API_URL}/properties`, {
+      const response = await axios.get<Property[]>(`/api/properties`, {
         withCredentials: true, // Ensure cookies/session data are included
       });
       return response.data;
