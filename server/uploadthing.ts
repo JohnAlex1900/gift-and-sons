@@ -1,9 +1,13 @@
 import { createUploadthing, type FileRouter } from "uploadthing/express";
 
-// Ensure UPLOADTHING_SECRET is available
-// if (!process.env.UPLOADTHING_SECRET) {
-//   throw new Error("❌ Missing UPLOADTHING_SECRET in environment variables.");
-// }
+// Define the correct type for the `data` parameter
+type UploadCompleteData = {
+  metadata: undefined; // Adjust this type based on your actual metadata
+  file: {
+    url: string;
+    key: string;
+  };
+};
 
 const f = createUploadthing(); // ✅ No need to pass secret manually
 
@@ -13,8 +17,10 @@ export const uploadRouter = {
       maxFileSize: "4GB",
       maxFileCount: 50,
     },
-  }).onUploadComplete((data) => {
+  }).onUploadComplete((data: UploadCompleteData) => {
     console.log("✅ Upload completed:", data);
+    console.log("🔗 File URL:", data.file.url);
+    console.log("🔑 File Key:", data.file.key);
   }),
 } satisfies FileRouter;
 
