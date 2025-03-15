@@ -9,6 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export default defineConfig(({ mode }) => {
+  console.log("Current mode:", mode);
   const env = loadEnv(mode, process.cwd(), "VITE");
 
   const plugins = [react(), runtimeErrorOverlay(), themePlugin()];
@@ -23,6 +24,14 @@ export default defineConfig(({ mode }) => {
       });
   }
 
+  // Determine the backend URL based on the environment
+  const isDevelopment = mode === "development";
+  const backendUrl = isDevelopment
+    ? "http://localhost:5000" // Use local backend during development
+    : "https://giftandsonsinternational.com"; // Use production backend in production
+
+  console.log("Backend URL:", backendUrl);
+
   return {
     plugins,
     resolve: {
@@ -35,6 +44,19 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: path.resolve(__dirname, "dist", "public"), // ✅ Frontend output in a clearer location
       emptyOutDir: true,
+    },
+    server: {
+      proxy: {
+        "/api": {
+          target: backendUrl, // Use the dynamically determined backend URL
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => {
+            console.log("Proxying request to:", backendUrl + path); // Log the proxied URL
+            return path;
+          },
+        },
+      },
     },
   };
 });

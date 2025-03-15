@@ -12,12 +12,21 @@ export default function Properties() {
     [key: string]: any;
   }>({});
 
+  const API_BASE_URL = import.meta.env.DEV
+    ? "http://localhost:5000/api" // Use local backend during development
+    : "https://giftandsonsinternational.com/api";
+
+  console.log(API_BASE_URL);
+
   const { data: properties, isLoading } = useQuery<Property[]>({
     queryKey: ["/api/properties", filters],
     queryFn: async () => {
-      const response = await axios.get<Property[]>(`/api/properties`, {
-        withCredentials: true, // Ensure cookies/session data are included
-      });
+      const response = await axios.get<Property[]>(
+        `${API_BASE_URL}/properties`,
+        {
+          withCredentials: true, // Ensure cookies/session data are included
+        }
+      );
       return response.data;
     },
   });

@@ -4,6 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import type { Property } from "@shared/schema";
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.DEV
+  ? "http://localhost:5000/api" // Use local backend during development
+  : "https://giftandsonsinternational.com/api";
+
+console.log(API_BASE_URL);
+
 export default function Home() {
   // Fetch featured properties
   const {
@@ -14,7 +20,9 @@ export default function Home() {
   } = useQuery<Property[]>({
     queryKey: ["/api/properties/featured"],
     queryFn: async () => {
-      const response = await axios.get<Property[]>(`/api/properties/featured`);
+      const response = await axios.get<Property[]>(
+        `${API_BASE_URL}/properties/featured`
+      );
       return response.data;
     },
   });

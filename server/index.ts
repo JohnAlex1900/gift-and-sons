@@ -2,7 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic, log } from "./vite";
 import cors from "cors";
-
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -11,6 +10,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Load environment variables
 const envPath =
   process.env.NODE_ENV === "production"
     ? path.resolve(__dirname, "../server/.env") // Adjust if needed
@@ -18,22 +18,22 @@ const envPath =
 
 dotenv.config({ path: envPath });
 
-console.log(
-  "UPLOADTHING_SECRET:",
-  process.env.UPLOADTHING_TOKEN || "Not Loaded"
-);
-
 const app = express();
+const PORT = process.env.PORT || 5000;
+
+// CORS configuration
 app.use(
   cors({
     origin: [
-      "http://localhost:5000",
-      "https://gift-and-sons.vercel.app",
-      "https://giftandsonsinternational.com",
+      "http://localhost:5000", // Allow requests from your local frontend
+      "https://gift-and-sons.vercel.app", // Allow requests from your Vercel frontend
+      "https://giftandsonsinternational.com", // Allow requests from your production frontend
     ],
-    credentials: true,
+    credentials: true, // Allow cookies/session data to be sent
   })
 );
+
+// Middleware for parsing JSON and URL-encoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -66,16 +66,24 @@ app.use((req, res, next) => {
   next();
 });
 
-// Async function to set up routes and static files
+// Serve static files from the client's dist directory
+const clientDistPath = path.resolve(__dirname, "../dist/public");
+app.use(express.static(clientDistPath));
+
+// Register API routes
 (async () => {
   try {
     await registerRoutes(app);
-    serveStatic(app);
   } catch (err) {
     console.error("❌ Error during server setup:", err);
     process.exit(1);
   }
 })();
+
+// Fallback to index.html for client-side routing
+app.use("*", (_req, res) => {
+  res.sendFile(path.join(clientDistPath, "index.html"));
+});
 
 // Global error handler
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -87,7 +95,6 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 // ✅ Start the server
-const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
