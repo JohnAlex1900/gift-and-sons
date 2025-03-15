@@ -27,7 +27,8 @@ app.use(
     origin: [
       "http://localhost:5000", // Allow requests from your local frontend
       "https://gift-and-sons.vercel.app", // Allow requests from your Vercel frontend
-      "https://giftandsonsinternational.com", // Allow requests from your production frontend
+      "https://giftandsonsinternational.com",
+      "https://www.giftandsonsinternational.com",
     ],
     credentials: true, // Allow cookies/session data to be sent
   })
