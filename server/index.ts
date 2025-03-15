@@ -21,11 +21,17 @@ dotenv.config({ path: envPath });
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.use((req, res, next) => {
+  console.log("Incoming request from origin:", req.headers.origin); // Log the request origin
+  next();
+});
+
 // CORS configuration
 app.use(
   cors({
     origin: [
       "http://localhost:5000", // Allow requests from your local frontend
+      "https://giftandsonsinternational.com",
       "https://www.giftandsonsinternational.com",
     ],
     credentials: true, // Allow cookies/session data to be sent

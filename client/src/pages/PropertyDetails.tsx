@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 
 const API_BASE_URL = import.meta.env.DEV
   ? "http://localhost:5000/api" // Use local backend during development
-  : "https://giftandsonsinternational.com/api";
+  : "https://www.giftandsonsinternational.com/api";
 
 export default function PropertyDetails() {
   const { id } = useParams();

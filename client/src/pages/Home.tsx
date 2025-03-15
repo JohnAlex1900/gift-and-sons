@@ -6,7 +6,7 @@ import axios from "axios";
 
 const API_BASE_URL = import.meta.env.DEV
   ? "http://localhost:5000/api" // Use local backend during development
-  : "https://giftandsonsinternational.com/api";
+  : "https://www.giftandsonsinternational.com/api";
 
 console.log(API_BASE_URL);
 
