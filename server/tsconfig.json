@@ -1,23 +1,17 @@
 {
-  "include": ["**/*", "types/**/*", "../shared/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts"],
   "compilerOptions": {
-    "incremental": true,
-    "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo",
-    "noEmit": false,
-    "outDir": "dist",
-    "rootDir": "../",
     "module": "ESNext",
-    "strict": true,
-    "lib": ["esnext"],
-    "esModuleInterop": true,
-    "skipLibCheck": true,
     "moduleResolution": "node",
     "baseUrl": ".",
-    "types": ["node", "express"],
-    "typeRoots": ["./node_modules/@types", "./types"], // Add the types directory
     "paths": {
       "@shared/*": ["../shared/*"]
-    }
-  }
+    },
+    "typeRoots": ["./node_modules/@types", "./types"],
+    "types": ["node", "express"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["**/*", "types/**/*", "../shared/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }
