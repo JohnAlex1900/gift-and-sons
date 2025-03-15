@@ -41,6 +41,7 @@ export async function registerRoutes(app: Express) {
   });
 
   app.get("/api/properties/featured", async (req, res) => {
+    console.log("GET /api/properties/featured");
     const properties = await storage.getFeaturedProperties();
     res.json(properties);
   });
