@@ -12,9 +12,7 @@ export default function Properties() {
     [key: string]: any;
   }>({});
 
-  const API_BASE_URL = import.meta.env.DEV
-    ? "http://localhost:5000/api" // Use local backend during development
-    : "https://www.giftandsonsinternational.com/api";
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   console.log(API_BASE_URL);
 
@@ -22,7 +20,7 @@ export default function Properties() {
     queryKey: ["/api/properties", filters],
     queryFn: async () => {
       const response = await axios.get<Property[]>(
-        `${API_BASE_URL}/properties`,
+        `${API_BASE_URL}/api/properties`,
         {
           withCredentials: true, // Ensure cookies/session data are included
         }

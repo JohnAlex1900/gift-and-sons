@@ -11,9 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 
-const API_BASE_URL = import.meta.env.DEV
-  ? "http://localhost:5000/api" // Use local backend during development
-  : "https://www.giftandsonsinternational.com/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function PropertyDetails() {
   const { id } = useParams();
@@ -27,7 +25,7 @@ export default function PropertyDetails() {
     queryKey: [`/api/properties/${id}`],
     queryFn: async () => {
       if (!id) return null;
-      const response = await fetch(`${API_BASE_URL}/properties/${id}`);
+      const response = await fetch(`${API_BASE_URL}/api/properties/${id}`);
       if (!response.ok) {
         throw new Error("Failed to fetch property details");
       }

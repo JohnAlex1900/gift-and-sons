@@ -4,7 +4,7 @@ import { getFirestore } from "firebase-admin/firestore"; // ✅ Import Firestore
 import { createRequire } from "module";
 
 const require = createRequire(import.meta.url);
-const serviceAccount = require("../gift&sons.json");
+const serviceAccount = require("./gift&sons.json");
 
 // Initialize Firebase Admin SDK
 const app = initializeApp({

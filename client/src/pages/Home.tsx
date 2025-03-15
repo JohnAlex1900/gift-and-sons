@@ -4,9 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Property } from "@shared/schema";
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.DEV
-  ? "http://localhost:5000/api" // Use local backend during development
-  : "https://www.giftandsonsinternational.com/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 console.log(API_BASE_URL);
 
@@ -21,7 +19,7 @@ export default function Home() {
     queryKey: ["/api/properties/featured"],
     queryFn: async () => {
       const response = await axios.get<Property[]>(
-        `${API_BASE_URL}/properties/featured`
+        `${API_BASE_URL}/api/properties/featured`
       );
       return response.data;
     },

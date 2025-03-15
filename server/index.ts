@@ -1,6 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { serveStatic, log } from "./vite";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
@@ -21,6 +20,7 @@ dotenv.config({ path: envPath });
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Log incoming requests
 app.use((req, res, next) => {
   console.log("Incoming request from origin:", req.headers.origin); // Log the request origin
   next();
@@ -31,8 +31,8 @@ app.use(
   cors({
     origin: [
       "http://localhost:5000", // Allow requests from your local frontend
-      "https://giftandsonsinternational.com",
-      "https://www.giftandsonsinternational.com",
+      "https://giftandsonsinternational.com", // Allow requests from your production frontend
+      "https://www.giftandsonsinternational.com", // Allow requests from your production frontend (with www)
     ],
     credentials: true, // Allow cookies/session data to be sent
   })
@@ -64,16 +64,12 @@ app.use((req, res, next) => {
       if (logLine.length > 80) {
         logLine = logLine.slice(0, 79) + "…";
       }
-      log(logLine);
+      console.log(logLine); // Log the request details
     }
   });
 
   next();
 });
-
-// Serve static files from the client's dist directory
-const clientDistPath = path.resolve(__dirname, "../dist/public");
-app.use(express.static(clientDistPath));
 
 // Register API routes
 (async () => {
@@ -84,11 +80,6 @@ app.use(express.static(clientDistPath));
     process.exit(1);
   }
 })();
-
-// Fallback to index.html for client-side routing
-app.use("*", (_req, res) => {
-  res.sendFile(path.join(clientDistPath, "index.html"));
-});
 
 // Global error handler
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

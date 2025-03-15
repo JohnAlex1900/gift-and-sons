@@ -27,8 +27,8 @@ export default defineConfig(({ mode }) => {
   // Determine the backend URL based on the environment
   const isDevelopment = mode === "development";
   const backendUrl = isDevelopment
-    ? "http://localhost:5000" // Use local backend during development
-    : "https://www.giftandsonsinternational.com"; // Use production backend in production
+    ? "http://localhost:5000" // Local backend for development
+    : "https://your-backend.onrender.com"; // Render backend for production
 
   console.log("Backend URL:", backendUrl);
 
@@ -36,27 +36,17 @@ export default defineConfig(({ mode }) => {
     plugins,
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "client", "src"),
-        "@shared": path.resolve(__dirname, "shared"),
+        "@": path.resolve(__dirname, "client", "src"), // Alias for client/src
+        "@shared": path.resolve(__dirname, "shared"), // Alias for shared code
       },
     },
-    root: path.resolve(__dirname, "client"),
+    root: path.resolve(__dirname, "client"), // Set root to the client directory
     build: {
-      outDir: path.resolve(__dirname, "dist", "public"), // ✅ Frontend output in a clearer location
-      emptyOutDir: true,
+      outDir: path.resolve(__dirname, "dist", "public"), // Output directory for the frontend
+      emptyOutDir: true, // Clear the output directory before building
     },
-    server: {
-      proxy: {
-        "/api": {
-          target: backendUrl, // Use the dynamically determined backend URL
-          changeOrigin: true,
-          secure: false,
-          rewrite: (path) => {
-            console.log("Proxying request to:", backendUrl + path); // Log the proxied URL
-            return path;
-          },
-        },
-      },
+    define: {
+      "import.meta.env.VITE_API_BASE_URL": JSON.stringify(backendUrl), // Pass backend URL to frontend
     },
   };
 });
