@@ -28,7 +28,7 @@ export default defineConfig(({ mode }) => {
   const isDevelopment = mode === "development";
   const backendUrl = isDevelopment
     ? "http://localhost:5000" // Use local backend during development
-    : "https://giftandsonsinternational.com"; // Use production backend in production
+    : "https://www.giftandsonsinternational.com"; // Use production backend in production
 
   console.log("Backend URL:", backendUrl);
 
