@@ -4,7 +4,7 @@
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../shared/*"]
+      "@shared/*": ["./shared/*"]
     },
     "typeRoots": ["./node_modules/@types", "./types"],
     "types": ["node", "express"],
