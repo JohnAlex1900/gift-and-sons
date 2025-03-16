@@ -2,16 +2,13 @@
   "compilerOptions": {
     "module": "ESNext",
     "moduleResolution": "node",
-    "baseUrl": ".",
-    "paths": {
-      "@shared/*": ["./shared/*"]
-    },
+    "baseUrl": ".", // Base directory for module resolution
     "typeRoots": ["./node_modules/@types", "./types"],
     "types": ["node", "express"],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true
   },
-  "include": ["**/*", "types/**/*", "../shared/**/*"],
+  "include": ["**/*", "types/**/*"], // Include the shared directory
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }

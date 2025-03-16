@@ -1,10 +1,6 @@
-import "./types/custom";
-
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer } from "http";
-import storage from "./storage";
-import { insertPropertySchema, insertInquirySchema } from "@shared/schema";
-import { adminAuth } from "./firebase-admin";
+import { adminAuth, db } from "./firebase-admin"; // Import Firestore and Firebase Auth
 import { createRouteHandler } from "uploadthing/express";
 import { uploadRouter } from "./uploadthing";
 import nodemailer from "nodemailer";
@@ -43,29 +39,43 @@ export async function registerRoutes(app: Express) {
 
   // Properties endpoints
   app.get("/api/properties", async (req: AuthenticatedRequest, res) => {
-    const properties = await storage.getAllProperties();
-    res.json(properties);
+    try {
+      const propertiesSnapshot = await db.collection("properties").get();
+      const properties = propertiesSnapshot.docs.map((doc) => doc.data());
+      res.json(properties);
+    } catch (error) {
+      console.error("❌ Error fetching properties:", error);
+      res.status(500).json({ message: "Server error" });
+    }
   });
 
   app.get(
     "/api/properties/featured",
     async (req: AuthenticatedRequest, res) => {
-      console.log("GET /api/properties/featured");
-      const properties = await storage.getFeaturedProperties();
-      res.json(properties);
+      try {
+        const featuredPropertiesSnapshot = await db
+          .collection("properties")
+          .where("featured", "==", true)
+          .get();
+        const featuredProperties = featuredPropertiesSnapshot.docs.map((doc) =>
+          doc.data()
+        );
+        res.json(featuredProperties);
+      } catch (error) {
+        console.error("❌ Error fetching featured properties:", error);
+        res.status(500).json({ message: "Server error" });
+      }
     }
   );
 
   app.get("/api/properties/:id", async (req: AuthenticatedRequest, res) => {
     const { id } = req.params;
-    console.log("🔍 Incoming request for property ID:", id);
-
     try {
-      const property = await storage.getPropertyById(id);
-      if (!property) {
+      const propertyDoc = await db.collection("properties").doc(id).get();
+      if (!propertyDoc.exists) {
         return res.status(404).json({ message: "Property not found" });
       }
-      res.json(property);
+      res.json(propertyDoc.data());
     } catch (error) {
       console.error("❌ Error fetching property:", error);
       res.status(500).json({ message: "Server error" });
@@ -77,43 +87,41 @@ export async function registerRoutes(app: Express) {
     "/api/properties",
     requireAuth,
     async (req: AuthenticatedRequest, res) => {
-      const result = insertPropertySchema.safeParse(req.body);
-      if (!result.success) {
-        return res.status(400).json({ errors: result.error.errors });
+      try {
+        const propertyData = req.body;
+        const propertyRef = await db.collection("properties").add(propertyData);
+        res.status(201).json({ id: propertyRef.id, ...propertyData });
+      } catch (error) {
+        console.error("❌ Error adding property:", error);
+        res.status(500).json({ message: "Server error" });
       }
-
-      const propertyData = {
-        ...result.data,
-        imageUrls: result.data.imageUrls ?? undefined, // Ensures imageUrls is never null
-      };
-
-      const property = await storage.addProperty(propertyData);
-
-      res.status(201).json(property);
     }
   );
 
-  app.patch(
-    "/api/properties/:id",
-    requireAuth,
-    async (req: AuthenticatedRequest, res) => {
-      const updatedData = {
-        ...req.body,
-        imageUrls: req.body.imageUrls ?? undefined, // Ensures imageUrls is never null
-      };
-
-      const property = await storage.updateProperty(req.params.id, updatedData);
-
-      res.json(property);
+  app.patch("/api/properties/:id", requireAuth, async (req, res) => {
+    const { id } = req.params;
+    try {
+      const updatedData = req.body;
+      await db.collection("properties").doc(id).update(updatedData);
+      res.json({ id, ...updatedData });
+    } catch (error) {
+      console.error("❌ Error updating property:", error);
+      res.status(500).json({ message: "Server error" });
     }
-  );
+  });
 
   app.delete(
     "/api/properties/:id",
     requireAuth,
     async (req: AuthenticatedRequest, res) => {
-      await storage.deleteProperty(req.params.id);
-      res.status(204).send();
+      const { id } = req.params;
+      try {
+        await db.collection("properties").doc(id).delete();
+        res.status(204).send();
+      } catch (error) {
+        console.error("❌ Error deleting property:", error);
+        res.status(500).json({ message: "Server error" });
+      }
     }
   );
 
@@ -122,27 +130,18 @@ export async function registerRoutes(app: Express) {
     "/api/inquiries",
     requireAuth,
     async (req: AuthenticatedRequest, res) => {
-      console.log("📥 Incoming Inquiry Data:", req.body);
-      console.log("🔑 Authenticated User:", req?.user);
-
-      if (!req.user) {
-        return res.status(401).json({ error: "Unauthorized" });
+      try {
+        const inquiryData = {
+          ...req.body,
+          userId: req.user?.uid,
+          createdAt: new Date().toISOString(),
+        };
+        const inquiryRef = await db.collection("inquiries").add(inquiryData);
+        res.status(201).json({ id: inquiryRef.id, ...inquiryData });
+      } catch (error) {
+        console.error("❌ Error creating inquiry:", error);
+        res.status(500).json({ message: "Server error" });
       }
-
-      const inquiryData = { ...req.body, userId: req.user?.uid };
-
-      console.log("📤 Final Inquiry Data Before Save:", inquiryData);
-
-      const result = insertInquirySchema.safeParse(inquiryData);
-      if (!result.success) {
-        console.error("❌ Validation Errors:", result.error.errors);
-        return res.status(400).json({ errors: result.error.errors });
-      }
-
-      const inquiry = await storage.createInquiry(result.data);
-      console.log("✅ Saved Inquiry:", inquiry);
-
-      res.status(201).json(inquiry);
     }
   );
 
@@ -150,8 +149,14 @@ export async function registerRoutes(app: Express) {
     "/api/inquiries",
     requireAuth,
     async (req: AuthenticatedRequest, res) => {
-      const inquiries = await storage.getAllInquiries();
-      res.json(inquiries);
+      try {
+        const inquiriesSnapshot = await db.collection("inquiries").get();
+        const inquiries = inquiriesSnapshot.docs.map((doc) => doc.data());
+        res.json(inquiries);
+      } catch (error) {
+        console.error("❌ Error fetching inquiries:", error);
+        res.status(500).json({ message: "Server error" });
+      }
     }
   );
 
@@ -159,10 +164,18 @@ export async function registerRoutes(app: Express) {
     "/api/inquiries/property/:propertyId",
     requireAuth,
     async (req, res) => {
-      const inquiries = await storage.getInquiriesByProperty(
-        req.params.propertyId
-      );
-      res.json(inquiries);
+      const { propertyId } = req.params;
+      try {
+        const inquiriesSnapshot = await db
+          .collection("inquiries")
+          .where("propertyId", "==", propertyId)
+          .get();
+        const inquiries = inquiriesSnapshot.docs.map((doc) => doc.data());
+        res.json(inquiries);
+      } catch (error) {
+        console.error("❌ Error fetching inquiries by property:", error);
+        res.status(500).json({ message: "Server error" });
+      }
     }
   );
 
@@ -170,8 +183,18 @@ export async function registerRoutes(app: Express) {
     "/api/inquiries/user/:userId",
     requireAuth,
     async (req: AuthenticatedRequest, res) => {
-      const inquiries = await storage.getInquiriesByUser(req.params.userId);
-      res.json(inquiries);
+      const { userId } = req.params;
+      try {
+        const inquiriesSnapshot = await db
+          .collection("inquiries")
+          .where("userId", "==", userId)
+          .get();
+        const inquiries = inquiriesSnapshot.docs.map((doc) => doc.data());
+        res.json(inquiries);
+      } catch (error) {
+        console.error("❌ Error fetching inquiries by user:", error);
+        res.status(500).json({ message: "Server error" });
+      }
     }
   );
 
@@ -179,8 +202,14 @@ export async function registerRoutes(app: Express) {
     "/api/inquiries/:id",
     requireAuth,
     async (req: AuthenticatedRequest, res) => {
-      await storage.deleteInquiry(req.params.id);
-      res.status(204).send();
+      const { id } = req.params;
+      try {
+        await db.collection("inquiries").doc(id).delete();
+        res.status(204).send();
+      } catch (error) {
+        console.error("❌ Error deleting inquiry:", error);
+        res.status(500).json({ message: "Server error" });
+      }
     }
   );
 

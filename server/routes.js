@@ -45,11 +45,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-import "./types/custom";
 import { createServer } from "http";
-import storage from "./storage";
-import { insertPropertySchema, insertInquirySchema } from "@shared/schema";
-import { adminAuth } from "./firebase-admin";
+import { adminAuth, db } from "./firebase-admin"; // Import Firestore and Firebase Auth
 import { createRouteHandler } from "uploadthing/express";
 import { uploadRouter } from "./uploadthing";
 import nodemailer from "nodemailer";
@@ -90,52 +87,72 @@ export function registerRoutes(app) {
             console.log("✅ UploadThing API registered at /api/uploadthing");
             // Properties endpoints
             app.get("/api/properties", function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                var properties;
+                var propertiesSnapshot, properties, error_2;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, storage.getAllProperties()];
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
+                            return [4 /*yield*/, db.collection("properties").get()];
                         case 1:
-                            properties = _a.sent();
+                            propertiesSnapshot = _a.sent();
+                            properties = propertiesSnapshot.docs.map(function (doc) { return doc.data(); });
                             res.json(properties);
-                            return [2 /*return*/];
+                            return [3 /*break*/, 3];
+                        case 2:
+                            error_2 = _a.sent();
+                            console.error("❌ Error fetching properties:", error_2);
+                            res.status(500).json({ message: "Server error" });
+                            return [3 /*break*/, 3];
+                        case 3: return [2 /*return*/];
                     }
                 });
             }); });
             app.get("/api/properties/featured", function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                var properties;
+                var featuredPropertiesSnapshot, featuredProperties, error_3;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            console.log("GET /api/properties/featured");
-                            return [4 /*yield*/, storage.getFeaturedProperties()];
+                            _a.trys.push([0, 2, , 3]);
+                            return [4 /*yield*/, db
+                                    .collection("properties")
+                                    .where("featured", "==", true)
+                                    .get()];
                         case 1:
-                            properties = _a.sent();
-                            res.json(properties);
-                            return [2 /*return*/];
+                            featuredPropertiesSnapshot = _a.sent();
+                            featuredProperties = featuredPropertiesSnapshot.docs.map(function (doc) {
+                                return doc.data();
+                            });
+                            res.json(featuredProperties);
+                            return [3 /*break*/, 3];
+                        case 2:
+                            error_3 = _a.sent();
+                            console.error("❌ Error fetching featured properties:", error_3);
+                            res.status(500).json({ message: "Server error" });
+                            return [3 /*break*/, 3];
+                        case 3: return [2 /*return*/];
                     }
                 });
             }); });
             app.get("/api/properties/:id", function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                var id, property, error_2;
+                var id, propertyDoc, error_4;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             id = req.params.id;
-                            console.log("🔍 Incoming request for property ID:", id);
                             _a.label = 1;
                         case 1:
                             _a.trys.push([1, 3, , 4]);
-                            return [4 /*yield*/, storage.getPropertyById(id)];
+                            return [4 /*yield*/, db.collection("properties").doc(id).get()];
                         case 2:
-                            property = _a.sent();
-                            if (!property) {
+                            propertyDoc = _a.sent();
+                            if (!propertyDoc.exists) {
                                 return [2 /*return*/, res.status(404).json({ message: "Property not found" })];
                             }
-                            res.json(property);
+                            res.json(propertyDoc.data());
                             return [3 /*break*/, 4];
                         case 3:
-                            error_2 = _a.sent();
-                            console.error("❌ Error fetching property:", error_2);
+                            error_4 = _a.sent();
+                            console.error("❌ Error fetching property:", error_4);
                             res.status(500).json({ message: "Server error" });
                             return [3 /*break*/, 4];
                         case 4: return [2 /*return*/];
@@ -144,128 +161,197 @@ export function registerRoutes(app) {
             }); });
             // Admin property management
             app.post("/api/properties", requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                var result, propertyData, property;
-                var _a;
-                return __generator(this, function (_b) {
-                    switch (_b.label) {
+                var propertyData, propertyRef, error_5;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
                         case 0:
-                            result = insertPropertySchema.safeParse(req.body);
-                            if (!result.success) {
-                                return [2 /*return*/, res.status(400).json({ errors: result.error.errors })];
-                            }
-                            propertyData = __assign(__assign({}, result.data), { imageUrls: (_a = result.data.imageUrls) !== null && _a !== void 0 ? _a : undefined });
-                            return [4 /*yield*/, storage.addProperty(propertyData)];
+                            _a.trys.push([0, 2, , 3]);
+                            propertyData = req.body;
+                            return [4 /*yield*/, db.collection("properties").add(propertyData)];
                         case 1:
-                            property = _b.sent();
-                            res.status(201).json(property);
-                            return [2 /*return*/];
+                            propertyRef = _a.sent();
+                            res.status(201).json(__assign({ id: propertyRef.id }, propertyData));
+                            return [3 /*break*/, 3];
+                        case 2:
+                            error_5 = _a.sent();
+                            console.error("❌ Error adding property:", error_5);
+                            res.status(500).json({ message: "Server error" });
+                            return [3 /*break*/, 3];
+                        case 3: return [2 /*return*/];
                     }
                 });
             }); });
             app.patch("/api/properties/:id", requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                var updatedData, property;
-                var _a;
-                return __generator(this, function (_b) {
-                    switch (_b.label) {
+                var id, updatedData, error_6;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
                         case 0:
-                            updatedData = __assign(__assign({}, req.body), { imageUrls: (_a = req.body.imageUrls) !== null && _a !== void 0 ? _a : undefined });
-                            return [4 /*yield*/, storage.updateProperty(req.params.id, updatedData)];
+                            id = req.params.id;
+                            _a.label = 1;
                         case 1:
-                            property = _b.sent();
-                            res.json(property);
-                            return [2 /*return*/];
+                            _a.trys.push([1, 3, , 4]);
+                            updatedData = req.body;
+                            return [4 /*yield*/, db.collection("properties").doc(id).update(updatedData)];
+                        case 2:
+                            _a.sent();
+                            res.json(__assign({ id: id }, updatedData));
+                            return [3 /*break*/, 4];
+                        case 3:
+                            error_6 = _a.sent();
+                            console.error("❌ Error updating property:", error_6);
+                            res.status(500).json({ message: "Server error" });
+                            return [3 /*break*/, 4];
+                        case 4: return [2 /*return*/];
                     }
                 });
             }); });
             app.delete("/api/properties/:id", requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
+                var id, error_7;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, storage.deleteProperty(req.params.id)];
+                        case 0:
+                            id = req.params.id;
+                            _a.label = 1;
                         case 1:
+                            _a.trys.push([1, 3, , 4]);
+                            return [4 /*yield*/, db.collection("properties").doc(id).delete()];
+                        case 2:
                             _a.sent();
                             res.status(204).send();
-                            return [2 /*return*/];
+                            return [3 /*break*/, 4];
+                        case 3:
+                            error_7 = _a.sent();
+                            console.error("❌ Error deleting property:", error_7);
+                            res.status(500).json({ message: "Server error" });
+                            return [3 /*break*/, 4];
+                        case 4: return [2 /*return*/];
                     }
                 });
             }); });
             // Inquiries
             app.post("/api/inquiries", requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                var inquiryData, result, inquiry;
+                var inquiryData, inquiryRef, error_8;
                 var _a;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
-                            console.log("📥 Incoming Inquiry Data:", req.body);
-                            console.log("🔑 Authenticated User:", req === null || req === void 0 ? void 0 : req.user);
-                            if (!req.user) {
-                                return [2 /*return*/, res.status(401).json({ error: "Unauthorized" })];
-                            }
-                            inquiryData = __assign(__assign({}, req.body), { userId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.uid });
-                            console.log("📤 Final Inquiry Data Before Save:", inquiryData);
-                            result = insertInquirySchema.safeParse(inquiryData);
-                            if (!result.success) {
-                                console.error("❌ Validation Errors:", result.error.errors);
-                                return [2 /*return*/, res.status(400).json({ errors: result.error.errors })];
-                            }
-                            return [4 /*yield*/, storage.createInquiry(result.data)];
+                            _b.trys.push([0, 2, , 3]);
+                            inquiryData = __assign(__assign({}, req.body), { userId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.uid, createdAt: new Date().toISOString() });
+                            return [4 /*yield*/, db.collection("inquiries").add(inquiryData)];
                         case 1:
-                            inquiry = _b.sent();
-                            console.log("✅ Saved Inquiry:", inquiry);
-                            res.status(201).json(inquiry);
-                            return [2 /*return*/];
+                            inquiryRef = _b.sent();
+                            res.status(201).json(__assign({ id: inquiryRef.id }, inquiryData));
+                            return [3 /*break*/, 3];
+                        case 2:
+                            error_8 = _b.sent();
+                            console.error("❌ Error creating inquiry:", error_8);
+                            res.status(500).json({ message: "Server error" });
+                            return [3 /*break*/, 3];
+                        case 3: return [2 /*return*/];
                     }
                 });
             }); });
             app.get("/api/inquiries", requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                var inquiries;
+                var inquiriesSnapshot, inquiries, error_9;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, storage.getAllInquiries()];
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
+                            return [4 /*yield*/, db.collection("inquiries").get()];
                         case 1:
-                            inquiries = _a.sent();
+                            inquiriesSnapshot = _a.sent();
+                            inquiries = inquiriesSnapshot.docs.map(function (doc) { return doc.data(); });
                             res.json(inquiries);
-                            return [2 /*return*/];
+                            return [3 /*break*/, 3];
+                        case 2:
+                            error_9 = _a.sent();
+                            console.error("❌ Error fetching inquiries:", error_9);
+                            res.status(500).json({ message: "Server error" });
+                            return [3 /*break*/, 3];
+                        case 3: return [2 /*return*/];
                     }
                 });
             }); });
             app.get("/api/inquiries/property/:propertyId", requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                var inquiries;
+                var propertyId, inquiriesSnapshot, inquiries, error_10;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, storage.getInquiriesByProperty(req.params.propertyId)];
+                        case 0:
+                            propertyId = req.params.propertyId;
+                            _a.label = 1;
                         case 1:
-                            inquiries = _a.sent();
+                            _a.trys.push([1, 3, , 4]);
+                            return [4 /*yield*/, db
+                                    .collection("inquiries")
+                                    .where("propertyId", "==", propertyId)
+                                    .get()];
+                        case 2:
+                            inquiriesSnapshot = _a.sent();
+                            inquiries = inquiriesSnapshot.docs.map(function (doc) { return doc.data(); });
                             res.json(inquiries);
-                            return [2 /*return*/];
+                            return [3 /*break*/, 4];
+                        case 3:
+                            error_10 = _a.sent();
+                            console.error("❌ Error fetching inquiries by property:", error_10);
+                            res.status(500).json({ message: "Server error" });
+                            return [3 /*break*/, 4];
+                        case 4: return [2 /*return*/];
                     }
                 });
             }); });
             app.get("/api/inquiries/user/:userId", requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                var inquiries;
+                var userId, inquiriesSnapshot, inquiries, error_11;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, storage.getInquiriesByUser(req.params.userId)];
+                        case 0:
+                            userId = req.params.userId;
+                            _a.label = 1;
                         case 1:
-                            inquiries = _a.sent();
+                            _a.trys.push([1, 3, , 4]);
+                            return [4 /*yield*/, db
+                                    .collection("inquiries")
+                                    .where("userId", "==", userId)
+                                    .get()];
+                        case 2:
+                            inquiriesSnapshot = _a.sent();
+                            inquiries = inquiriesSnapshot.docs.map(function (doc) { return doc.data(); });
                             res.json(inquiries);
-                            return [2 /*return*/];
+                            return [3 /*break*/, 4];
+                        case 3:
+                            error_11 = _a.sent();
+                            console.error("❌ Error fetching inquiries by user:", error_11);
+                            res.status(500).json({ message: "Server error" });
+                            return [3 /*break*/, 4];
+                        case 4: return [2 /*return*/];
                     }
                 });
             }); });
             app.delete("/api/inquiries/:id", requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
+                var id, error_12;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, storage.deleteInquiry(req.params.id)];
+                        case 0:
+                            id = req.params.id;
+                            _a.label = 1;
                         case 1:
+                            _a.trys.push([1, 3, , 4]);
+                            return [4 /*yield*/, db.collection("inquiries").doc(id).delete()];
+                        case 2:
                             _a.sent();
                             res.status(204).send();
-                            return [2 /*return*/];
+                            return [3 /*break*/, 4];
+                        case 3:
+                            error_12 = _a.sent();
+                            console.error("❌ Error deleting inquiry:", error_12);
+                            res.status(500).json({ message: "Server error" });
+                            return [3 /*break*/, 4];
+                        case 4: return [2 /*return*/];
                     }
                 });
             }); });
             // Contact form email sending
             app.post("/api/contact", function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                var _a, name, email, message, transporter, error_3;
+                var _a, name, email, message, transporter, error_13;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
@@ -296,8 +382,8 @@ export function registerRoutes(app) {
                             res.status(200).json({ message: "Email sent successfully" });
                             return [3 /*break*/, 4];
                         case 3:
-                            error_3 = _b.sent();
-                            console.error("Error sending email:", error_3);
+                            error_13 = _b.sent();
+                            console.error("Error sending email:", error_13);
                             res.status(500).json({ error: "Failed to send email" });
                             return [3 /*break*/, 4];
                         case 4: return [2 /*return*/];

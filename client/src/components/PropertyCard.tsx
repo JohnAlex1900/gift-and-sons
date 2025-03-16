@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { type Property } from "@shared/schema";
+import { Property } from "@/types";
 import { Link } from "wouter";
 import { useState } from "react";
 
