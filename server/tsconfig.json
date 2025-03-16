@@ -1,8 +1,15 @@
 {
   "compilerOptions": {
     "module": "ESNext",
+    "target": "ESNext",
     "moduleResolution": "node",
-    "baseUrl": ".", // Base directory for module resolution
+    "outDir": "./dist",
+    "rootDir": "./",
+    "baseUrl": ".",
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipDefaultLibCheck": true,
+    "allowSyntheticDefaultImports": true,
     "typeRoots": ["./node_modules/@types", "./types"],
     "types": ["node", "express"],
     "strict": true,
