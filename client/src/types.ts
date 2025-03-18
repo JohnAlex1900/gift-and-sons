@@ -13,3 +13,25 @@ export interface Property {
   featured?: boolean; // Optional
   status?: string; // Optional
 }
+
+export interface Inquiry {
+  id: string; // Firestore document ID
+  propertyId: string;
+  propertyName: string;
+  userId: string;
+  userEmail: string;
+  message: string;
+  number: string;
+  createdAt: Date;
+}
+
+export interface Login {
+  email: string;
+  password: string;
+}
+
+export interface Register {
+  name: string;
+  email: string;
+  password: string;
+}

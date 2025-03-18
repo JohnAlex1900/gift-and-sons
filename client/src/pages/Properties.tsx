@@ -1,7 +1,7 @@
 import { PropertyCard } from "@/components/PropertyCard";
 import { SearchFilters } from "@/components/SearchFilters";
 import { useQuery } from "@tanstack/react-query";
-import { type Property } from "@shared/schema";
+import { Property } from "@/types";
 import { useState } from "react";
 import axios from "axios";
 

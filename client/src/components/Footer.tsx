@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import image from "../../public/gift-and-sons.png";
+import image from "../../assets/gift-and-sons.png";
 
 export function Footer() {
   return (

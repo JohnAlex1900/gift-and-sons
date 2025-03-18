@@ -28,7 +28,7 @@ export default defineConfig(({ mode }) => {
   const isDevelopment = mode === "development";
   const backendUrl = isDevelopment
     ? "http://localhost:5000" // Local backend for development
-    : "https://your-backend.onrender.com"; // Render backend for production
+    : "https://gift-and-sons.onrender.com"; // Render backend for production
 
   console.log("Backend URL:", backendUrl);
 
@@ -36,13 +36,13 @@ export default defineConfig(({ mode }) => {
     plugins,
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "client", "src"), // Alias for client/src
+        "@": path.resolve(__dirname, "client/src"), // Correct path to client/src
         "@shared": path.resolve(__dirname, "shared"), // Alias for shared code
       },
     },
     root: path.resolve(__dirname, "client"), // Set root to the client directory
     build: {
-      outDir: path.resolve(__dirname, "dist", "public"), // Output directory for the frontend
+      outDir: path.resolve(__dirname, "client", "dist"), // Output directory for the frontend
       emptyOutDir: true, // Clear the output directory before building
     },
     define: {

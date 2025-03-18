@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { type Property, type Inquiry } from "@shared/schema";
+import { Property, Inquiry } from "@/types";
 import { apiRequest, getQueryFn } from "@/lib/queryClient";
 import { useState, useEffect } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -164,7 +164,7 @@ export default function Admin() {
       id,
       data,
     }: {
-      id: number;
+      id: string;
       data: Partial<Property>;
     }) => {
       await apiRequest("PATCH", `/api/properties/${id}`, data);
@@ -178,7 +178,7 @@ export default function Admin() {
   });
 
   const deletePropertyMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       await apiRequest("DELETE", `/api/properties/${id}`);
     },
     onSuccess: () => {

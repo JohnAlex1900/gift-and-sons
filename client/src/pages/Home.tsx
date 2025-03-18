@@ -1,7 +1,7 @@
 import { Hero } from "@/components/Hero";
 import { PropertyCard } from "@/components/PropertyCard";
 import { useQuery } from "@tanstack/react-query";
-import type { Property } from "@shared/schema";
+import { Property } from "@/types";
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;

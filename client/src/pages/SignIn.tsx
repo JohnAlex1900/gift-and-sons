@@ -15,7 +15,7 @@ import { signInWithGoogle, auth } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { loginSchema, type LoginData } from "@shared/schema";
+import { Login } from "@/types";
 import { Link, useLocation } from "wouter";
 import { FirebaseError } from "firebase/app";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -25,8 +25,7 @@ export default function SignIn() {
   const [, setLocation] = useLocation();
   const [user, loading] = useAuthState(auth);
 
-  const form = useForm<LoginData>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<Login>({
     defaultValues: {
       email: "",
       password: "",
@@ -45,7 +44,7 @@ export default function SignIn() {
     }
   }, [user, toast, setLocation]);
 
-  const handleEmailSignIn = async (data: LoginData) => {
+  const handleEmailSignIn = async (data: Login) => {
     try {
       console.log("Attempting email sign in...");
       await signInWithEmailAndPassword(auth, data.email, data.password);

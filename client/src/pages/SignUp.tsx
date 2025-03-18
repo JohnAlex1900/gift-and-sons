@@ -15,7 +15,7 @@ import { signInWithGoogle, auth } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { registerSchema, type RegisterData } from "@shared/schema";
+import { Register } from "@/types";
 import { Link, useLocation } from "wouter";
 import { FirebaseError } from "firebase/app";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -25,8 +25,7 @@ export default function SignUp() {
   const [, setLocation] = useLocation();
   const [user, loading] = useAuthState(auth);
 
-  const form = useForm<RegisterData>({
-    resolver: zodResolver(registerSchema),
+  const form = useForm<Register>({
     defaultValues: {
       name: "",
       email: "",
@@ -46,7 +45,7 @@ export default function SignUp() {
     }
   }, [user, toast, setLocation]);
 
-  const handleEmailSignUp = async (data: RegisterData) => {
+  const handleEmailSignUp = async (data: Register) => {
     try {
       console.log("Attempting to create account...");
       const userCredential = await createUserWithEmailAndPassword(

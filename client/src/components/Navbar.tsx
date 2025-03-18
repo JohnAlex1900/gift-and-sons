@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { auth } from "@/lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { PiSignOutBold } from "react-icons/pi";
-import image from "../../public/gift-and-sons.png";
+import image from "../../assets/gift-and-sons.png";
 
 export function Navbar() {
   const [user] = useAuthState(auth);
