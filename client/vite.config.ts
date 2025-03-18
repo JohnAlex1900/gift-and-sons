@@ -1,15 +1,13 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import themePlugin from "@replit/vite-plugin-shadcn-theme-json";
-import path, { dirname } from "path";
+import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 export default defineConfig(({ mode }) => {
   console.log("Current mode:", mode);
+
+  // Load environment variables
   const env = loadEnv(mode, process.cwd(), "VITE");
 
   const plugins = [react(), runtimeErrorOverlay(), themePlugin()];
@@ -36,13 +34,12 @@ export default defineConfig(({ mode }) => {
     plugins,
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "client/src"), // Correct path to client/src
-        "@shared": path.resolve(__dirname, "shared"), // Alias for shared code
+        "@": path.resolve(__dirname, "src"), // Alias for client/src
       },
     },
-    root: path.resolve(__dirname, "client"), // Set root to the client directory
+    root: __dirname, // Set root to the client directory
     build: {
-      outDir: path.resolve(__dirname, "client", "dist"), // Output directory for the frontend
+      outDir: path.resolve(__dirname, "dist"), // Output directory for the frontend
       emptyOutDir: true, // Clear the output directory before building
     },
     define: {
