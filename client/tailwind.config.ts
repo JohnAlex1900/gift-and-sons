@@ -41,7 +41,7 @@ export default {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
-        border: "hsl(var(--border))",
+        border: "hsl(var(--border))", // This defines the border color
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         chart: {
@@ -61,6 +61,9 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+      },
+      borderColor: {
+        border: "hsl(var(--border))", // Explicitly define the border-border utility
       },
       keyframes: {
         "accordion-down": {
