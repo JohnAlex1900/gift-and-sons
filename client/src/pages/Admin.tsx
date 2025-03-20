@@ -55,6 +55,8 @@ export default function Admin() {
   const [area, setArea] = useState("");
   const [featured, setFeatured] = useState(false);
 
+  console.log(API_BASE_URL);
+
   useEffect(() => {
     if (selectedProperty) {
       setTitle(selectedProperty.title || "");
