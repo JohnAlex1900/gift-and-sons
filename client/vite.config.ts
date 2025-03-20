@@ -38,6 +38,11 @@ export default defineConfig(({ mode }) => {
       },
     },
     root: __dirname, // Set root to the client directory
+    server: {
+      fs: {
+        strict: true,
+      },
+    },
     build: {
       outDir: path.resolve(__dirname, "dist"), // Output directory for the frontend
       emptyOutDir: true, // Clear the output directory before building
