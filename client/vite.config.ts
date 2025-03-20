@@ -7,7 +7,6 @@ import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 export default defineConfig(({ mode }) => {
   console.log("Current mode:", mode);
 
-  // Load environment variables
   const env = loadEnv(mode, process.cwd(), "VITE");
 
   const plugins = [react(), runtimeErrorOverlay(), themePlugin()];
@@ -22,11 +21,10 @@ export default defineConfig(({ mode }) => {
       });
   }
 
-  // Determine the backend URL based on the environment
   const isDevelopment = mode === "development";
   const backendUrl = isDevelopment
-    ? "http://localhost:5000" // Local backend for development
-    : "https://gift-and-sons.onrender.com"; // Render backend for production
+    ? "http://localhost:5000"
+    : "https://gift-and-sons.onrender.com";
 
   console.log("Backend URL:", backendUrl);
 
@@ -34,21 +32,22 @@ export default defineConfig(({ mode }) => {
     plugins,
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "src"), // Alias for client/src
+        "@": path.resolve(__dirname, "src"),
       },
     },
-    root: __dirname, // Set root to the client directory
+    root: __dirname,
     server: {
       fs: {
         strict: true,
       },
+      historyApiFallback: true, // 🔥 Ensures routing works locally!
     },
     build: {
-      outDir: path.resolve(__dirname, "dist"), // Output directory for the frontend
-      emptyOutDir: true, // Clear the output directory before building
+      outDir: path.resolve(__dirname, "dist"),
+      emptyOutDir: true,
     },
     define: {
-      "import.meta.env.VITE_API_BASE_URL": JSON.stringify(backendUrl), // Pass backend URL to frontend
+      "import.meta.env.VITE_API_BASE_URL": JSON.stringify(backendUrl),
     },
   };
 });
