@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "serve dist"
+    "start": "serve -s dist"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
