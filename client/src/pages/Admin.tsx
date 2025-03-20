@@ -26,6 +26,9 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import UploadButton from "@/components/UploadButton";
+import axios from "axios";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function Admin() {
   const [user] = useAuthState(auth);
@@ -112,6 +115,15 @@ export default function Admin() {
   // Fetch properties using query function with built-in auth
   const { data: properties } = useQuery<Property[]>({
     queryKey: ["/api/properties"],
+    queryFn: async () => {
+      const response = await axios.get<Property[]>(
+        `${API_BASE_URL}/api/properties`,
+        {
+          withCredentials: true, // Ensure cookies/session data are included
+        }
+      );
+      return response.data;
+    },
   });
 
   // Fetch inquiries from Firestore
