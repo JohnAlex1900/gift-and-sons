@@ -20,7 +20,7 @@ export function Navbar() {
                 src={image}
                 alt="Logo"
               />
-              <a className="text-2xl font-bold text-primary">Gift & Sons</a>
+              <a className="font-bold text-primary">Gift & Sons</a>
             </Link>
           </div>
           <div className="flex items-center gap-4">
