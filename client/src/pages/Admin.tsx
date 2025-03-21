@@ -55,7 +55,9 @@ export default function Admin() {
   const [area, setArea] = useState("");
   const [featured, setFeatured] = useState(false);
 
-  console.log(API_BASE_URL);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     if (selectedProperty) {
@@ -164,6 +166,7 @@ export default function Admin() {
   // Mutations (auth handled in apiRequest)
   const createPropertyMutation = useMutation({
     mutationFn: async (property: Partial<Property>) => {
+      setIsCreating(true);
       try {
         await apiRequest("POST", `${API_BASE_URL}/api/properties`, property);
       } catch (error) {
@@ -173,6 +176,8 @@ export default function Admin() {
         }
         toast({ title: "Error creating property", description: errorMessage });
         throw error; // Ensure react-query handles it properly
+      } finally {
+        setIsCreating(false);
       }
     },
     onSuccess: async () => {
@@ -190,7 +195,12 @@ export default function Admin() {
       id: string;
       data: Partial<Property>;
     }) => {
-      await apiRequest("PATCH", `${API_BASE_URL}/api/properties/${id}`, data);
+      setIsUpdating(true);
+      try {
+        await apiRequest("PATCH", `${API_BASE_URL}/api/properties/${id}`, data);
+      } finally {
+        setIsUpdating(false);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/properties"] });
@@ -202,7 +212,12 @@ export default function Admin() {
 
   const deletePropertyMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest("DELETE", `${API_BASE_URL}/api/properties/${id}`);
+      setIsDeleting(id);
+      try {
+        await apiRequest("DELETE", `${API_BASE_URL}/api/properties/${id}`);
+      } finally {
+        setIsDeleting(null);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/properties"] });
@@ -399,8 +414,18 @@ export default function Admin() {
                   <label htmlFor="featured">Featured Property</label>
                 </div>
                 <div className="flex gap-4">
-                  <Button type="submit" className="flex-1">
-                    {selectedProperty ? "Update" : "Create"} Property
+                  <Button
+                    type="submit"
+                    className="flex-1"
+                    disabled={isCreating || isUpdating}
+                  >
+                    {isCreating
+                      ? "Creating Property..."
+                      : isUpdating
+                      ? "Updating Property..."
+                      : selectedProperty
+                      ? "Update Property"
+                      : "Create Property"}
                   </Button>
                   {selectedProperty && (
                     <Button
@@ -408,6 +433,7 @@ export default function Admin() {
                       type="button"
                       variant="outline"
                       onClick={() => setSelectedProperty(null)}
+                      disabled={isUpdating}
                     >
                       Cancel
                     </Button>
@@ -455,8 +481,9 @@ export default function Admin() {
                         onClick={() =>
                           deletePropertyMutation.mutate(property.id)
                         }
+                        disabled={isDeleting === property.id}
                       >
-                        Delete
+                        {isDeleting === property.id ? "Deleting..." : "Delete"}
                       </Button>
                     </div>
                   </div>
