@@ -165,7 +165,7 @@ export default function Admin() {
   const createPropertyMutation = useMutation({
     mutationFn: async (property: Partial<Property>) => {
       try {
-        await apiRequest("POST", "/api/properties", property);
+        await apiRequest("POST", `${API_BASE_URL}/api/properties`, property);
       } catch (error) {
         let errorMessage = "An unknown error occurred";
         if (error instanceof Error) {
@@ -190,7 +190,7 @@ export default function Admin() {
       id: string;
       data: Partial<Property>;
     }) => {
-      await apiRequest("PATCH", `/api/properties/${id}`, data);
+      await apiRequest("PATCH", `${API_BASE_URL}/api/properties/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/properties"] });
@@ -202,7 +202,7 @@ export default function Admin() {
 
   const deletePropertyMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest("DELETE", `/api/properties/${id}`);
+      await apiRequest("DELETE", `${API_BASE_URL}/api/properties/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/properties"] });
@@ -212,7 +212,7 @@ export default function Admin() {
 
   const deleteInquiryMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest("DELETE", `/api/inquiries/${id}`);
+      await apiRequest("DELETE", `${API_BASE_URL}/api/inquiries/${id}`);
     },
     onMutate: async (id: string) => {
       await queryClient.cancelQueries({ queryKey: ["inquiries"] });
