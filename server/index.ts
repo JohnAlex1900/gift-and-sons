@@ -36,7 +36,13 @@ app.use(
       "https://www.giftandsonsinternational.com", // Allow requests from your production frontend (with www)
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-uploadthing-version"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "x-uploadthing-version",
+      "x-uploadthing-package",
+      "x-uploadthing-filename",
+    ],
     credentials: true, // Allow cookies/session data to be sent
   })
 );
