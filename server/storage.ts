@@ -91,6 +91,7 @@ export const addProperty = async (property: {
   featured?: boolean | null;
   status?: string;
   imageUrls?: string[];
+  youtubeLink?: string;
 }) => {
   console.log("📌 Saving property to Firestore:", property);
 

@@ -12,6 +12,7 @@ export interface Property {
   imageUrls?: string[]; // Optional array of image URLs
   featured?: boolean; // Optional
   status?: string; // Optional
+  youtubeLink?: string; // Optional
 }
 
 export interface Inquiry {

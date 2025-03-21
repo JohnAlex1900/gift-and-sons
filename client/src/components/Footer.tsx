@@ -1,5 +1,37 @@
 import { Link } from "wouter";
 import image from "../../assets/gift-and-sons.png";
+import {
+  FaFacebook,
+  FaInstagram,
+  FaTiktok,
+  FaYoutube,
+  FaWhatsapp,
+} from "react-icons/fa";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+const socialLinks = [
+  {
+    icon: FaFacebook,
+    url: "https://facebook.com/giftandsons",
+    label: "Facebook",
+  },
+  {
+    icon: FaInstagram,
+    url: "https://instagram.com/giftandsons",
+    label: "Instagram",
+  },
+  { icon: FaTiktok, url: "https://tiktok.com/@giftandsons", label: "TikTok" },
+  {
+    icon: FaYoutube,
+    url: "https://youtube.com/@giftandsons",
+    label: "YouTube",
+  },
+  { icon: FaWhatsapp, url: "https://wa.me/254720464627", label: "WhatsApp" },
+];
 
 export function Footer() {
   return (
@@ -63,6 +95,23 @@ export function Footer() {
               <li>Hours: 24/7</li>
             </ul>
           </div>
+        </div>
+        <div className="flex justify-center gap-6 mt-8">
+          {socialLinks.map(({ icon: Icon, url, label }) => (
+            <Tooltip key={label}>
+              <TooltipTrigger asChild>
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-primary transition-transform transform hover:scale-110"
+                >
+                  <Icon size={28} />
+                </a>
+              </TooltipTrigger>
+              <TooltipContent>{label}</TooltipContent>
+            </Tooltip>
+          ))}
         </div>
         <div className="border-t mt-8 pt-8 text-center text-muted-foreground">
           <p>

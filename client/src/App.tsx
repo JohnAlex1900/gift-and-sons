@@ -15,6 +15,7 @@ import NotFound from "@/pages/not-found";
 import { getAuth, getRedirectResult } from "firebase/auth";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { TooltipProvider } from "./components/ui/tooltip";
 
 function RedirectToHome() {
   const [, navigate] = useLocation();
@@ -68,16 +69,18 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Router base="/">
-        <div className="min-h-screen flex flex-col">
-          <Navbar />
-          <main className="flex-1">
-            <AppRouter />
-          </main>
-          <Footer />
-        </div>
-        <Toaster />
-      </Router>
+      <TooltipProvider>
+        <Router base="/">
+          <div className="min-h-screen flex flex-col">
+            <Navbar />
+            <main className="flex-1">
+              <AppRouter />
+            </main>
+            <Footer />
+          </div>
+          <Toaster />
+        </Router>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

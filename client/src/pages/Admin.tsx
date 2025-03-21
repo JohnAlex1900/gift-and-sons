@@ -54,6 +54,7 @@ export default function Admin() {
   const [bathrooms, setBathrooms] = useState("");
   const [area, setArea] = useState("");
   const [featured, setFeatured] = useState(false);
+  const [youtubeLink, setYoutubeLink] = useState("");
 
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -72,6 +73,7 @@ export default function Admin() {
       setSelectedBedrooms(selectedProperty.bedrooms || []);
       setImageUrls(selectedProperty.imageUrls || []);
       setFeatured(selectedProperty.featured || false);
+      setYoutubeLink(selectedProperty.youtubeLink || "");
     } else {
       resetForm();
     }
@@ -89,6 +91,7 @@ export default function Admin() {
     setSelectedBedrooms([]);
     setImageUrls([]);
     setFeatured(false);
+    setYoutubeLink("");
   };
 
   const bedroomOptions = [
@@ -287,6 +290,7 @@ export default function Admin() {
                     area: Number(area),
                     imageUrls,
                     featured,
+                    youtubeLink,
                   };
 
                   if (selectedProperty) {
@@ -391,6 +395,14 @@ export default function Admin() {
                     placeholder="Area (sq ft)"
                     value={area}
                     onChange={(e) => setArea(e.target.value)}
+                  />
+                  <Input
+                    className="bg-foreground"
+                    name="youtubeLink"
+                    type="text"
+                    placeholder="YouTube Video Link (optional)"
+                    value={youtubeLink}
+                    onChange={(e) => setYoutubeLink(e.target.value)}
                   />
                 </div>
                 <UploadButton setImageUrls={setImageUrls} />
