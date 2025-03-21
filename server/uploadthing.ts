@@ -4,7 +4,7 @@ import { createUploadthing, type FileRouter } from "uploadthing/express";
 type UploadCompleteData = {
   metadata: undefined; // Adjust this type based on your actual metadata
   file: {
-    url: string;
+    ufsUrl: string;
     key: string;
   };
 };
@@ -19,7 +19,7 @@ export const uploadRouter = {
     },
   }).onUploadComplete((data: UploadCompleteData) => {
     console.log("✅ Upload completed:", data);
-    console.log("🔗 File URL:", data.file.url);
+    console.log("🔗 File URL:", data.file.ufsUrl);
     console.log("🔑 File Key:", data.file.key);
   }),
 } satisfies FileRouter;
