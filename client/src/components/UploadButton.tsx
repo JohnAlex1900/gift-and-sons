@@ -18,7 +18,7 @@ export default function UploadButton({ setImageUrls }: UploadButtonProps) {
             return;
           }
 
-          const urls = res.map((file) => file.url);
+          const urls = res.map((file) => file.ufsUrl);
           setImageUrls(urls);
           toast.success("Images uploaded successfully!");
         }}

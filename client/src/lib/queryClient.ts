@@ -1,10 +1,16 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 import { auth } from "@/lib/firebase";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    let errorMessage = res.statusText;
+    try {
+      const data = await res.json();
+      if (data.message) errorMessage = data.message;
+    } catch {
+      errorMessage = await res.text();
+    }
+    throw new Error(`${res.status}: ${errorMessage}`);
   }
 }
 
@@ -54,7 +60,7 @@ export const getQueryFn =
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null as unknown as T; // Explicitly cast null as T
+      return null as unknown as T;
     }
 
     await throwIfResNotOk(res);
@@ -70,12 +76,9 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: Infinity,
       retry: false,
-      suspense: false,
-      useErrorBoundary: true,
     },
     mutations: {
       retry: false,
-      useErrorBoundary: true,
     },
   },
 });

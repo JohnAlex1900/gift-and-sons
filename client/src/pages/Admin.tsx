@@ -164,10 +164,19 @@ export default function Admin() {
   // Mutations (auth handled in apiRequest)
   const createPropertyMutation = useMutation({
     mutationFn: async (property: Partial<Property>) => {
-      await apiRequest("POST", "/api/properties", property);
+      try {
+        await apiRequest("POST", "/api/properties", property);
+      } catch (error) {
+        let errorMessage = "An unknown error occurred";
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        toast({ title: "Error creating property", description: errorMessage });
+        throw error; // Ensure react-query handles it properly
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/properties"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/properties"] });
       toast({ title: "Property created successfully" });
       resetForm();
     },
