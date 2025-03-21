@@ -85,7 +85,6 @@ export async function registerRoutes(app: Express) {
   // Admin property management
   app.post(
     "/api/properties",
-    requireAuth,
     async (req: AuthenticatedRequest, res: Response) => {
       try {
         const propertyData = req.body;
@@ -100,7 +99,6 @@ export async function registerRoutes(app: Express) {
 
   app.patch(
     "/api/properties/:id",
-    requireAuth,
     async (req: AuthenticatedRequest, res: Response) => {
       const { id } = req.params;
       try {
@@ -116,7 +114,6 @@ export async function registerRoutes(app: Express) {
 
   app.delete(
     "/api/properties/:id",
-    requireAuth,
     async (req: AuthenticatedRequest, res: Response) => {
       const { id } = req.params;
       try {
@@ -132,7 +129,6 @@ export async function registerRoutes(app: Express) {
   // Inquiries
   app.post(
     "/api/inquiries",
-    requireAuth,
     async (req: AuthenticatedRequest, res: Response) => {
       try {
         const inquiryData = {
@@ -195,7 +191,6 @@ export async function registerRoutes(app: Express) {
 
   app.delete(
     "/api/inquiries/:id",
-    requireAuth,
     async (req: AuthenticatedRequest, res: Response) => {
       const { id } = req.params;
       try {

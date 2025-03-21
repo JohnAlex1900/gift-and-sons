@@ -92,6 +92,8 @@ export const addProperty = async (property: {
   status?: string;
   imageUrls?: string[];
 }) => {
+  console.log("📌 Saving property to Firestore:", property);
+
   const propertyData = {
     ...property,
     bedrooms: Array.isArray(property.bedrooms) ? property.bedrooms : [], // Ensure an array
