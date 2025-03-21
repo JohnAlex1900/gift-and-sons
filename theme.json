@@ -1,8 +1,0 @@
-{
-  "variant": "professional",
-  "primary": "hsl(45, 100%, 50%)",
-  "appearance": "light",
-  "radius": 0.5,
-  "background": "hsl(0, 0%, 0%)",
-  "muted": "hsl(0, 0%, 90%)"
-}

@@ -44,7 +44,7 @@ export default defineConfig(({ mode }) => {
       },
       historyApiFallback: true, // Ensures correct routing for SPA
     },
-    base: "/",
+    base: mode === "development" ? "/" : "./",
     build: {
       outDir: path.resolve(__dirname, "dist"), // Output directory for the frontend
       emptyOutDir: true, // Clear the output directory before building
