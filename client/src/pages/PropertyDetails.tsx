@@ -53,7 +53,7 @@ export default function PropertyDetails() {
         message,
         number,
       };
-      await apiRequest("POST", "/api/inquiries", inquiry);
+      await apiRequest("POST", `${API_BASE_URL}/api/inquiries`, inquiry);
     },
     onSuccess: () => {
       toast({
