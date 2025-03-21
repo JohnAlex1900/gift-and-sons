@@ -35,7 +35,7 @@ app.use(
       "https://giftandsonsinternational.com", // Allow requests from your production frontend
       "https://www.giftandsonsinternational.com", // Allow requests from your production frontend (with www)
     ],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: [
       "Content-Type",
       "Authorization",
