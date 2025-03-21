@@ -20,8 +20,8 @@ export function Hero() {
         </h1>
         <p className="text-xl mb-8 max-w-2xl">
           Gift And Sons Properties International offers exclusive luxury
-          properties for sale, rent and lease across prime locations around the
-          country.
+          properties for sale, rent and lease across prime locations around
+          Kenya as well as internationally.
         </p>
         <div className="flex gap-4">
           <Link href="/properties">

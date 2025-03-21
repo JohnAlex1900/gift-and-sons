@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useParams, useLocation } from "wouter";
+import { useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,7 +16,6 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export default function PropertyDetails() {
   const { id } = useParams();
   const [user] = useAuthState(auth);
-  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [inquiryMessage, setInquiryMessage] = useState("");
   const [inquiryNumber, setInquiryNumber] = useState("");
@@ -71,27 +70,6 @@ export default function PropertyDetails() {
       });
     },
   });
-
-  console.log("Property image URLs:", property?.imageUrls);
-
-  if (!user) {
-    return (
-      <div className="flex flex-col items-center text-center py-16">
-        <h2 className="text-2xl font-bold mb-4">
-          Sign in to View Property Details
-        </h2>
-        <p className="text-muted-foreground mb-8">
-          Please sign in or create an account.
-        </p>
-        <div className="flex gap-4">
-          <Button onClick={() => setLocation("/signin")}>Sign In</Button>
-          <Button variant="outline" onClick={() => setLocation("/signup")}>
-            Create Account
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   if (isLoading) {
     return (
