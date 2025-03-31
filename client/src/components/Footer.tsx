@@ -123,6 +123,18 @@ export function Footer() {
             &copy; {new Date().getFullYear()} Gift And Sons Properties
             International. All rights reserved.
           </p>
+          <br />
+          <p>
+            Built by :{" "}
+            <a
+              href="https://startech-softwares.netlify.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:text-orange-300"
+            >
+              STARTECH SOFTWARES
+            </a>
+          </p>
         </div>
       </div>
     </footer>
