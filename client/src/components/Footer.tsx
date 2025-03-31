@@ -43,17 +43,13 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <div className="flex items-center justify-center md:justify-start">
-              {" "}
-              {/* Flex container for logo and app name */}
-              <img
-                src={image}
-                alt="Gift & Sons Logo"
-                className="h-16 w-16 mr-2" // Add margin-right for spacing
-              />
-              <h3 className="text-primary text-lg font-semibold">
-                Gift & Sons
-              </h3>
+            <div className="flex items-center">
+              <Link href="/" className="flex items-center">
+                <img className="h-8 w-auto mr-2" src={image} alt="Logo" />
+                <span className="font-bold text-primary text-lg sm:text-xl">
+                  Gift & Sons
+                </span>
+              </Link>
             </div>
             <p className="text-muted-foreground mt-4">
               {" "}
