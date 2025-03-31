@@ -49,8 +49,5 @@ export default defineConfig(({ mode }) => {
       outDir: path.resolve(__dirname, "dist"), // Output directory for the frontend
       emptyOutDir: true, // Clear the output directory before building
     },
-    define: {
-      "import.meta.env.VITE_API_BASE_URL": JSON.stringify(backendUrl), // Pass backend URL to frontend
-    },
   };
 });

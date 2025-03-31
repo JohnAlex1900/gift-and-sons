@@ -15,15 +15,29 @@ export interface Property {
   youtubeLink?: string; // Optional
 }
 
-export interface Inquiry {
+export interface Car {
   id: string; // Firestore document ID
-  propertyId: string;
-  propertyName: string;
-  userId: string;
-  userEmail: string;
+  title: string;
+  description: string;
+  price: number;
+  year: number;
+  make: string;
+  model: string;
+  mileage: number;
+  condition: string;
+  imageUrls?: string[]; // Optional array of image URLs
+  featured?: boolean; // Optional
+  youtubeLink?: string; // Optional
+}
+
+export interface Review {
+  id: string; // Firestore document ID
+  propertyId?: string;
+  carId?: string;
   message: string;
-  number: string;
-  createdAt: Date;
+  rating: number;
+  createdAt: string;
+  reply?: { message: string; createdAt: Date } | null;
 }
 
 export interface Login {

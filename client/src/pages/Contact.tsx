@@ -70,7 +70,8 @@ export default function Contact() {
                     <span className="text-muted-foreground">
                       Main: +254 720 464627
                       <p>Substitue Contact 1: +254716080793 / David</p>
-                      <p>Substitue Contact 2: +254780464626 / Gladwell</p>
+                      <li>Substitue Contact 2: +1 (717) 333-7547 / Zacharia</li>
+                      <p>Substitue Contact 3: +254780464626 / Gladwell</p>
                     </span>
                   </p>
                   <p className="flex items-center gap-2">

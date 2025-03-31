@@ -112,8 +112,8 @@ export function SearchFilters({ onFiltersChange }: SearchFiltersProps) {
           />
         </div>
         <div className="flex justify-between text-sm text-muted-foreground">
-          <span>kes{filters.minPrice.toLocaleString()}</span>
-          <span>kes{filters.maxPrice.toLocaleString()}</span>
+          <span>ksh{filters.minPrice.toLocaleString()}</span>
+          <span>ksh{filters.maxPrice.toLocaleString()}</span>
         </div>
       </div>
 

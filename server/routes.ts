@@ -126,78 +126,190 @@ export async function registerRoutes(app: Express) {
     }
   );
 
-  // Inquiries
+  // Reviews
+  app.post("/api/reviews", async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      console.log("📝 Incoming review request:", req.body);
+
+      const reviewData = {
+        ...req.body,
+        createdAt: new Date().toISOString(),
+      };
+      const review = await storage.createReview(reviewData);
+      res.status(201).json(review);
+    } catch (error) {
+      console.error("❌ Error creating review:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  //Replies
   app.post(
-    "/api/inquiries",
+    "/api/reviews/reply",
     async (req: AuthenticatedRequest, res: Response) => {
       try {
-        const inquiryData = {
-          ...req.body,
-          userId: req.user?.uid,
-          createdAt: new Date().toISOString(),
-        };
-        const inquiry = await storage.createInquiry(inquiryData);
-        res.status(201).json(inquiry);
+        const { reviewId, replyMessage, adminEmail } = req.body;
+
+        if (!reviewId || !replyMessage || !adminEmail) {
+          return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        // Verify that the request is from the admin
+        if (adminEmail !== process.env.VITE_ADMIN_EMAIL) {
+          return res.status(403).json({ error: "Unauthorized" });
+        }
+
+        // Call storage function to add the reply
+        await storage.addReplyToReview(reviewId, replyMessage);
+
+        res.json({ success: true, message: "Reply added successfully" });
       } catch (error) {
-        console.error("❌ Error creating inquiry:", error);
-        res.status(500).json({ message: "Server error" });
+        console.error("❌ Error adding reply:", error);
+        res.status(500).json({ error: "Internal server error" });
       }
     }
   );
 
-  app.get(
-    "/api/inquiries",
-    requireAuth,
-    async (req: AuthenticatedRequest, res: Response) => {
-      try {
-        const inquiries = await storage.getAllInquiries();
-        res.json(inquiries);
-      } catch (error) {
-        console.error("❌ Error fetching inquiries:", error);
-        res.status(500).json({ message: "Server error" });
-      }
+  app.get("/api/reviews", async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const reviews = await storage.getAllReviews();
+      res.json(reviews);
+    } catch (error) {
+      console.error("❌ Error fetching reviews:", error);
+      res.status(500).json({ message: "Server error" });
     }
-  );
+  });
 
   app.get(
-    "/api/inquiries/property/:propertyId",
-    requireAuth,
+    "/api/reviews/property/:propertyId",
     async (req: AuthenticatedRequest, res: Response) => {
       const { propertyId } = req.params;
       try {
-        const inquiries = await storage.getInquiriesByProperty(propertyId);
-        res.json(inquiries);
+        const reviews = await storage.getReviewsByProperty(propertyId);
+        res.json(reviews);
       } catch (error) {
-        console.error("❌ Error fetching inquiries by property:", error);
+        console.error("❌ Error fetching reviews by property:", error);
         res.status(500).json({ message: "Server error" });
       }
     }
   );
 
   app.get(
-    "/api/inquiries/user/:userId",
+    "/api/reviews/car/:carId",
+    async (req: AuthenticatedRequest, res: Response) => {
+      const { carId } = req.params;
+      try {
+        const reviews = await storage.getReviewsByCar(carId);
+        res.json(reviews);
+      } catch (error) {
+        console.error("❌ Error fetching reviews by car:", error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/reviews/user/:userId",
     requireAuth,
     async (req: AuthenticatedRequest, res: Response) => {
       const { userId } = req.params;
       try {
-        const inquiries = await storage.getInquiriesByUser(userId);
-        res.json(inquiries);
+        const reviews = await storage.getReviewsByUser(userId);
+        res.json(reviews);
       } catch (error) {
-        console.error("❌ Error fetching inquiries by user:", error);
+        console.error("❌ Error fetching reviews by user:", error);
         res.status(500).json({ message: "Server error" });
       }
     }
   );
 
   app.delete(
-    "/api/inquiries/:id",
+    "/api/reviews/:id",
     async (req: AuthenticatedRequest, res: Response) => {
       const { id } = req.params;
       try {
-        await storage.deleteInquiry(id);
+        await storage.deleteReview(id);
         res.status(204).send();
       } catch (error) {
-        console.error("❌ Error deleting inquiry:", error);
+        console.error("❌ Error deleting review:", error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  app.get("/api/cars", async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const cars = await storage.getAllCars();
+      res.json(cars);
+    } catch (error) {
+      console.error("❌ Error fetching cars:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.get(
+    "/api/cars/featured",
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const cars = await storage.getFeaturedCars();
+        res.json(cars);
+      } catch (error) {
+        console.error("❌ Error fetching featured cars:", error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  app.get("/api/cars/:id", async (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+    try {
+      const car = await storage.getCarById(id);
+      if (!car) {
+        return res.status(404).json({ message: "car not found" });
+      }
+      res.json(car);
+    } catch (error) {
+      console.error("❌ Error fetching car:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Admin property management
+  app.post("/api/cars", async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const carData = req.body;
+      const car = await storage.addCar(carData);
+      res.status(201).json(car);
+    } catch (error) {
+      console.error("❌ Error adding car:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.patch(
+    "/api/cars/:id",
+    async (req: AuthenticatedRequest, res: Response) => {
+      const { id } = req.params;
+      try {
+        const updatedData = req.body;
+        const car = await storage.updateCar(id, updatedData);
+        res.json(car);
+      } catch (error) {
+        console.error("❌ Error updating car:", error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  app.delete(
+    "/api/cars/:id",
+    async (req: AuthenticatedRequest, res: Response) => {
+      const { id } = req.params;
+      try {
+        await storage.deleteCar(id);
+        res.status(204).send();
+      } catch (error) {
+        console.error("❌ Error deleting car:", error);
         res.status(500).json({ message: "Server error" });
       }
     }

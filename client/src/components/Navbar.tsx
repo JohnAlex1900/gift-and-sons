@@ -31,6 +31,9 @@ export function Navbar() {
             <Link href="/properties">
               <a className="text-foreground hover:text-primary">Properties</a>
             </Link>
+            <Link href="/cars">
+              <a className="text-foreground hover:text-primary">Cars</a>
+            </Link>
             <Link href="/contact">
               <a className="text-foreground hover:text-primary">Contact</a>
             </Link>
@@ -76,6 +79,9 @@ export function Navbar() {
           <div className="md:hidden flex flex-col items-center space-y-4 py-4 border-t">
             <Link href="/properties">
               <a className="text-foreground hover:text-primary">Properties</a>
+            </Link>
+            <Link href="/cars">
+              <a className="text-foreground hover:text-primary">Cars</a>
             </Link>
             <Link href="/contact">
               <a className="text-foreground hover:text-primary">Contact</a>

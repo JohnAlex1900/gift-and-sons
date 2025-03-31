@@ -4,20 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Property, Review } from "@/types";
+import { Car, Review } from "@/types";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export default function PropertyDetails() {
+export default function CarDetails() {
   const { id } = useParams();
   const [user] = useAuthState(auth);
   const { toast } = useToast();
+  const [rating, setRating] = useState(0);
   const [reviewMessage, setReviewMessage] = useState("");
-  const [rating, setRating] = useState(1);
 
   const [showAllReviews, setShowAllReviews] = useState(false);
 
@@ -118,13 +119,13 @@ export default function PropertyDetails() {
     return `${month}-${day}-${year}`; // Converts "2025-03-28" → "03-28-2025"
   };
 
-  const { data: property, isLoading } = useQuery<Property>({
-    queryKey: [`/api/properties/${id}`],
+  const { data: car, isLoading } = useQuery<Car>({
+    queryKey: [`/api/cars/${id}`],
     queryFn: async () => {
       if (!id) return null;
-      const response = await fetch(`${API_BASE_URL}/api/properties/${id}`);
+      const response = await fetch(`${API_BASE_URL}/api/cars/${id}`);
       if (!response.ok) {
-        throw new Error("Failed to fetch property details");
+        throw new Error("Failed to fetch Car details");
       }
       return response.json();
     },
@@ -167,7 +168,7 @@ export default function PropertyDetails() {
       message: string;
       rating: number;
     }) => {
-      if (!property) throw new Error("Property details not available");
+      if (!car) throw new Error("Property details not available");
 
       const review: Partial<Review> = {
         propertyId: id,
@@ -246,10 +247,10 @@ export default function PropertyDetails() {
     );
   }
 
-  if (!property) {
+  if (!car) {
     return (
       <div className="text-center py-8">
-        <h1 className="text-2xl font-bold">Property not found</h1>
+        <h1 className="text-2xl font-bold">Car not found</h1>
       </div>
     );
   }
@@ -257,9 +258,9 @@ export default function PropertyDetails() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Image Display Logic */}
-      {(property.imageUrls ?? []).length > 1 ? (
+      {(car.imageUrls ?? []).length > 1 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {property.imageUrls?.map((url, index) => (
+          {car.imageUrls?.map((url, index) => (
             <div key={index} className="relative">
               <img
                 src={url}
@@ -269,11 +270,11 @@ export default function PropertyDetails() {
             </div>
           ))}
         </div>
-      ) : property.imageUrls?.length === 1 ? (
+      ) : car.imageUrls?.length === 1 ? (
         <div className="w-full">
           <img
-            src={property.imageUrls[0]}
-            alt="Property Image"
+            src={car.imageUrls[0]}
+            alt="Car Image"
             className="w-full h-[400px] object-cover rounded-lg"
           />
         </div>
@@ -284,25 +285,22 @@ export default function PropertyDetails() {
       )}
 
       <div className="mt-6 space-y-6">
-        <h1 className="text-3xl font-bold text-primary">{property.title}</h1>
+        <h1 className="text-3xl font-bold text-primary">{car.title}</h1>
         <p className="text-lg text-muted-foreground leading-relaxed">
-          {property.description}
+          {car.description}
         </p>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-muted-foreground">
           <p className="text-foreground">
-            <strong className="text-primary">Price:</strong> ksh{" "}
-            {property.price}
+            <strong className="text-primary">Price:</strong> ksh {car.price}
           </p>
           <p className="text-foreground">
-            <strong className="text-primary">Type:</strong> {property.type}
+            <strong className="text-primary">Year:</strong> {car.year}
           </p>
           <p className="text-foreground">
-            <strong className="text-primary">Category:</strong>{" "}
-            {property.category}
+            <strong className="text-primary">Model:</strong> {car.model}
           </p>
           <p className="text-foreground">
-            <strong className="text-primary">Location:</strong>{" "}
-            {property.location}
+            <strong className="text-primary">Miles:</strong> {car.mileage}
           </p>
         </div>
       </div>
@@ -311,7 +309,7 @@ export default function PropertyDetails() {
         <CardContent className="p-6">
           <h2 className="text-xl font-semibold mb-4">Leave a Review</h2>
 
-          {/* Star Rating Input */}
+          {/* Star Rating */}
           <div className="flex items-center gap-2 mb-4">
             <span className="text-lg font-medium">Your Rating:</span>
             {[1, 2, 3, 4, 5].map((star) => (
@@ -337,7 +335,7 @@ export default function PropertyDetails() {
 
           {/* Submit Button */}
           <Button
-            className="w-full mt-2"
+            className="w-full mt-4"
             onClick={() =>
               reviewMutation.mutate({
                 message: reviewMessage,
@@ -428,16 +426,29 @@ export default function PropertyDetails() {
                 ))
             ) : (
               // Show only the first review initially
-              <div className="border bg-gray-200 p-4 rounded-lg shadow-md mt-4">
-                <p className="text-gray-600 font-medium">
-                  ⭐ {reviews[0].rating} / 5
+              <div className="bg-gray-200 border p-4 rounded-lg shadow-md mt-4">
+                <p className="text-sm text-gray-600">
+                  ⭐ {reviews[0].rating}/5
                 </p>
-                <p className="text-sm text-black mt-4 font-medium">
-                  {reviews[0].message}
-                </p>
+                <p className="text-black font-medium">{reviews[0].message}</p>
                 <p className="text-xs text-gray-500 text-right">
                   {formatDate(reviews[0].createdAt)}
                 </p>
+
+                {isAdmin && !reviews[0].reply?.message && (
+                  <div className="flex justify-end mt-2">
+                    <Button
+                      className="text-blue-500 text-sm"
+                      onClick={() =>
+                        setReplyOpen(
+                          replyOpen === reviews[0].id ? null : reviews[0].id
+                        )
+                      }
+                    >
+                      {replyOpen === reviews[0].id ? "Cancel" : "Reply"}
+                    </Button>
+                  </div>
+                )}
 
                 {reviews[0].reply ? (
                   <div className="mt-2 pt-3 ml-9 pl-3 bg-gray-500 rounded-lg border-l-4 border-gray-500">

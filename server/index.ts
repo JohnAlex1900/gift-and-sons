@@ -31,6 +31,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5000",
+      "http://localhost:5173",
       "http://localhost:3000",
       "https://giftandsonsinternational.com", // Allow requests from your production frontend
       "https://www.giftandsonsinternational.com", // Allow requests from your production frontend (with www)

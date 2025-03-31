@@ -4,7 +4,8 @@ import { Timestamp } from "firebase-admin/firestore";
 // Define Firestore collections
 const usersCollection = db.collection("users");
 const propertiesCollection = db.collection("properties");
-const inquiriesCollection = db.collection("inquiries");
+const reviewsCollection = db.collection("reviews");
+const carsCollection = db.collection("cars");
 
 // Fetch all users
 export const getAllUsers = async () => {
@@ -116,38 +117,58 @@ export const deleteProperty = async (id: string) => {
   await docRef.delete();
 };
 
-// Add an inquiry
-export const createInquiry = async (inquiry: {
-  userId: string;
-  propertyId: string;
-  propertyName: string;
-  userEmail: string;
+// Add an review
+export const createReview = async (review: {
+  propertyId?: string;
+  carId?: string;
   message: string;
-  number: string;
-  status?: string;
+  rating: number;
 }) => {
-  const inquiryWithTimestamp = {
-    ...inquiry,
-    createdAt: Timestamp.now(), // Ensure createdAt is included
+  const reviewWithDateString = {
+    ...review,
+    createdAt: new Date().toISOString().split("T")[0], // Ensure createdAt is included
   };
-  const newInquiryRef = await inquiriesCollection.add(inquiryWithTimestamp);
-  return { id: newInquiryRef.id, ...inquiryWithTimestamp };
+  const newReviewRef = await reviewsCollection.add(reviewWithDateString);
+  return { id: newReviewRef.id, ...reviewWithDateString };
 };
 
-// Fetch all inquiries
-export const getAllInquiries = async () => {
-  const snapshot = await inquiriesCollection.get();
+//Replies
+// Add a reply to a review
+export const addReplyToReview = async (
+  reviewId: string,
+  replyMessage: string
+) => {
+  const reviewRef = reviewsCollection.doc(reviewId);
+  const reviewDoc = await reviewRef.get();
+
+  if (!reviewDoc.exists) {
+    throw new Error("Review not found");
+  }
+
+  // Update the review with the reply
+  await reviewRef.update({
+    reply: {
+      message: replyMessage,
+      createdAt: new Date().toISOString(),
+      adminName: "Gift & Sons Properties International",
+    },
+  });
+
+  return { success: true, message: "Reply added successfully" };
+};
+
+// Fetch all reviews
+export const getAllReviews = async () => {
+  const snapshot = await reviewsCollection.get();
   return snapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
   }));
 };
 
-// Get inquiries by user ID
-export const getInquiriesByUser = async (userId: string) => {
-  const snapshot = await inquiriesCollection
-    .where("userId", "==", userId)
-    .get();
+// Get reviews by user ID
+export const getReviewsByUser = async (userId: string) => {
+  const snapshot = await reviewsCollection.where("userId", "==", userId).get();
   return snapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
@@ -155,18 +176,97 @@ export const getInquiriesByUser = async (userId: string) => {
 };
 
 // Get inquiries by property ID
-export const getInquiriesByProperty = async (propertyId: string) => {
-  const snapshot = await inquiriesCollection
+export const getReviewsByProperty = async (propertyId: string) => {
+  const snapshot = await reviewsCollection
     .where("propertyId", "==", propertyId)
     .get();
+
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+
+    return {
+      id: doc.id,
+      ...data,
+      createdAt:
+        typeof data.createdAt === "string" ? data.createdAt : "Unknown Date",
+    };
+  });
+};
+
+export const getReviewsByCar = async (carId: string) => {
+  const snapshot = await reviewsCollection.where("carId", "==", carId).get();
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+
+    return {
+      id: doc.id,
+      ...data,
+      createdAt:
+        typeof data.createdAt === "string" ? data.createdAt : "Unknown Date",
+    };
+  });
+};
+
+export const deleteReview = async (id: string) => {
+  const docRef = reviewsCollection.doc(id);
+  await docRef.delete();
+};
+
+//Car Functionality
+export const getAllCars = async () => {
+  const snapshot = await carsCollection.get();
   return snapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
   }));
 };
 
-export const deleteInquiry = async (id: string) => {
-  const docRef = inquiriesCollection.doc(id);
+export const getCarById = async (id: string) => {
+  const docRef = carsCollection.doc(id);
+  const carDoc = await docRef.get();
+  return carDoc.exists ? { id: carDoc.id, ...carDoc.data() } : null;
+};
+
+export const getFeaturedCars = async () => {
+  const snapshot = await carsCollection.where("featured", "==", true).get();
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+};
+
+export const addCar = async (car: {
+  title: string;
+  type: string;
+  description: string;
+  price: number;
+  year: number;
+  make: string;
+  model: string;
+  mileage: number;
+  condition: string;
+  imageUrls?: string[]; // Optional array of image URLs
+  featured?: boolean; // Optional
+  youtubeLink?: string;
+}) => {
+  console.log("📌 Saving car to Firestore:", car);
+
+  const carData = {
+    ...car,
+  };
+
+  const newcarRef = await carsCollection.add(carData);
+  return { id: newcarRef.id, ...carData };
+};
+
+export const updateCar = async (id: string, updates: Partial<any>) => {
+  const docRef = carsCollection.doc(id);
+  await docRef.set(updates, { merge: true });
+};
+
+// Delete a property
+export const deleteCar = async (id: string) => {
+  const docRef = carsCollection.doc(id);
   await docRef.delete();
 };
 
@@ -182,11 +282,19 @@ const storage = {
   addProperty,
   updateProperty,
   deleteProperty,
-  createInquiry,
-  getAllInquiries,
-  getInquiriesByUser,
-  getInquiriesByProperty,
-  deleteInquiry,
+  createReview,
+  addReplyToReview,
+  getAllReviews,
+  getReviewsByUser,
+  getReviewsByProperty,
+  getReviewsByCar,
+  deleteReview,
+  getAllCars,
+  getCarById,
+  getFeaturedCars,
+  addCar,
+  updateCar,
+  deleteCar,
 };
 
 export default storage;

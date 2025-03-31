@@ -11,11 +11,12 @@ import Contact from "@/pages/Contact";
 import Admin from "@/pages/Admin";
 import SignIn from "@/pages/SignIn";
 import SignUp from "@/pages/SignUp";
-import NotFound from "@/pages/not-found";
 import { getAuth, getRedirectResult } from "firebase/auth";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { TooltipProvider } from "./components/ui/tooltip";
+import CarDetails from "./pages/CarDetails";
+import Cars from "./pages/Cars";
 
 function RedirectToHome() {
   const [, navigate] = useLocation();
@@ -34,6 +35,8 @@ function AppRouter() {
       <Route path="/" component={Home} />
       <Route path="/properties" component={Properties} />
       <Route path="/properties/:id" component={PropertyDetails} />
+      <Route path="/cars" component={Cars} />
+      <Route path="/cars/:id" component={CarDetails} />
       <Route path="/contact" component={Contact} />
       <Route path="/admin" component={Admin} />
       <Route path="/signin" component={SignIn} />

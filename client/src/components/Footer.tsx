@@ -89,8 +89,9 @@ export function Footer() {
             <ul className="space-y-2 text-muted-foreground">
               <li>20117, Biashara Street, Naivasha, Kenya</li>
               <li>Main Contact: +254720464627</li>
-              <li>Substitue Contact 1: +254716080793 / David</li>
-              <li>Substitue Contact 2: +254780464626 / Gladwell</li>
+              <li>Substitue Contact 1: +254 716 080 793 / David</li>
+              <li>Substitue Contact 2: +1 (717) 333-7547 / Zacharia</li>
+              <li>Substitue Contact 3: +254 780 464 626 / Gladwell</li>
               <li>Email: giftnsons@gmail.com</li>
               <li>Hours: 24/7</li>
             </ul>
