@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import image from "../../assets/gift-and-sons.png";
+import image from "../../assets/gift&sons.png";
 import {
   FaFacebook,
   FaInstagram,
@@ -16,18 +16,22 @@ import {
 const socialLinks = [
   {
     icon: FaFacebook,
-    url: "https://facebook.com/giftandsons",
+    url: "https://www.facebook.com/share/1BfvB2HWSo/?mibextid=wwXIfr",
     label: "Facebook",
   },
   {
     icon: FaInstagram,
-    url: "https://instagram.com/giftandsons",
+    url: "https://www.instagram.com/giftnsonsproperties?igsh=NW1ncWVvaGRzbG02&utm_source=qr",
     label: "Instagram",
   },
-  { icon: FaTiktok, url: "https://tiktok.com/@giftandsons", label: "TikTok" },
+  {
+    icon: FaTiktok,
+    url: "https://www.tiktok.com/@gift.sons.propert?_t=ZM-8usBA4ryhgz&_r=1",
+    label: "TikTok",
+  },
   {
     icon: FaYoutube,
-    url: "https://youtube.com/@giftandsons",
+    url: "https://youtube.com/@giftandsonstv2023?si=rC3jo__aqj9brXrC",
     label: "YouTube",
   },
   { icon: FaWhatsapp, url: "https://wa.me/254720464627", label: "WhatsApp" },

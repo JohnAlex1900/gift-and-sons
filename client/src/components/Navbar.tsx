@@ -5,7 +5,7 @@ import { auth } from "@/lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { PiSignOutBold } from "react-icons/pi";
 import { HiOutlineMenu, HiX } from "react-icons/hi"; // Menu icons
-import image from "../../assets/gift-and-sons.png";
+import image from "../../assets/gift&sons.png";
 
 export function Navbar() {
   const [user] = useAuthState(auth);
