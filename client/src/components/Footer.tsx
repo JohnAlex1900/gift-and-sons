@@ -46,9 +46,14 @@ export function Footer() {
             <div className="flex items-center">
               <Link href="/" className="flex items-center">
                 <img className="h-8 w-auto mr-2" src={image} alt="Logo" />
-                <span className="font-bold text-primary text-lg sm:text-xl">
-                  Gift & Sons
-                </span>
+                <div className="text-center">
+                  <span className="font-bold text-primary text-lg sm:text-xl block">
+                    Gift & Sons
+                  </span>
+                  <span className="text-primary text-sm sm:text-base text-gray-600">
+                    Properties International
+                  </span>
+                </div>
               </Link>
             </div>
             <p className="text-muted-foreground mt-4">

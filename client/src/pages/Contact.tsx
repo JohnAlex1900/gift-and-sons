@@ -64,6 +64,9 @@ export default function Contact() {
                     <span className="text-muted-foreground">
                       20117, Biashara Street, Naivasha, Kenya
                     </span>
+                    <span className="text-muted-foreground">
+                      Lois Plaza 1st Floor, Room 44
+                    </span>
                   </p>
                   <p className="flex items-center gap-2">
                     <span className="font-semibold">Phone:</span>
