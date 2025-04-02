@@ -1,9 +1,9 @@
-import { SearchFilters } from "@/components/SearchFilters";
 import { useQuery } from "@tanstack/react-query";
 import { Car } from "@/types";
 import { useState } from "react";
 import axios from "axios";
 import { CarCard } from "@/components/CarCard";
+import { CarSearchFilters } from "@/components/CarSearchFilters";
 
 export default function Properties() {
   const [filters, setFilters] = useState<{
@@ -48,7 +48,7 @@ export default function Properties() {
       <h1 className="text-4xl font-bold mb-8">cars</h1>
 
       <div className="mb-8">
-        <SearchFilters onFiltersChange={setFilters} />
+        <CarSearchFilters onFiltersChange={setFilters} />
       </div>
 
       {isLoading ? (
