@@ -3,6 +3,7 @@ import { PropertyCard } from "@/components/PropertyCard";
 import { useQuery } from "@tanstack/react-query";
 import { Property } from "@/types";
 import axios from "axios";
+import { Helmet } from "react-helmet-async";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -63,6 +64,23 @@ export default function Home() {
 
   return (
     <div>
+      <Helmet>
+        <title>Home - Gift & Sons Properties</title>
+        <meta
+          name="description"
+          content="Find the best properties for your family and friends."
+        />
+        <meta property="og:title" content="Home - Gift & Sons Properties" />
+        <meta
+          property="og:description"
+          content="Find the best properties for your family and friends."
+        />
+
+        <meta
+          property="og:url"
+          content={`https://giftandsonsinternational.com`}
+        />
+      </Helmet>
       <Hero />
       <section className="py-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

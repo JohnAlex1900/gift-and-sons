@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import themePlugin from "@replit/vite-plugin-shadcn-theme-json";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import sitemap from "vite-plugin-sitemap";
 
 export default defineConfig(({ mode }) => {
   console.log("Current mode:", mode);
@@ -31,7 +32,12 @@ export default defineConfig(({ mode }) => {
   console.log("Backend URL:", backendUrl);
 
   return {
-    plugins,
+    plugins: [
+      sitemap({
+        hostname: "https://giftandsonsinternational.com",
+        dynamicRoutes: ["/properties/:id", "/cars/:id"], // Add dynamic routes if needed
+      }),
+    ],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "src"), // Alias for client/src

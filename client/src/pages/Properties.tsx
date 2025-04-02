@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Property } from "@/types";
 import { useState } from "react";
 import axios from "axios";
+import { Helmet } from "react-helmet-async";
 
 export default function Properties() {
   const [filters, setFilters] = useState<{
@@ -47,38 +48,60 @@ export default function Properties() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-4xl font-bold mb-8">Properties</h1>
+    <>
+      <Helmet>
+        <title>Properties - Gift & Sons Properties</title>
+        <meta
+          name="description"
+          content="Browse properties for sale and rent in Gift & Sons"
+        />
+        <meta
+          property="og:title"
+          content="Properties - Gift & Sons Properties"
+        />
+        <meta
+          property="og:description"
+          content="Browse properties for sale and rent in Gift & Sons"
+        />
 
-      <div className="mb-8">
-        <SearchFilters onFiltersChange={setFilters} />
+        <meta
+          property="og:url"
+          content={`https://giftandsonsinternational.com/properties`}
+        />
+      </Helmet>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-4xl font-bold mb-8">Properties</h1>
+
+        <div className="mb-8">
+          <SearchFilters onFiltersChange={setFilters} />
+        </div>
+
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="h-[400px] bg-muted animate-pulse rounded-lg"
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredProperties?.map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
+          </div>
+        )}
+
+        {filteredProperties?.length === 0 && (
+          <div className="text-center py-12">
+            <h3 className="text-xl font-semibold mb-2">No properties found</h3>
+            <p className="text-muted-foreground">
+              Try adjusting your filters to find more properties
+            </p>
+          </div>
+        )}
       </div>
-
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="h-[400px] bg-muted animate-pulse rounded-lg"
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProperties?.map((property) => (
-            <PropertyCard key={property.id} property={property} />
-          ))}
-        </div>
-      )}
-
-      {filteredProperties?.length === 0 && (
-        <div className="text-center py-12">
-          <h3 className="text-xl font-semibold mb-2">No properties found</h3>
-          <p className="text-muted-foreground">
-            Try adjusting your filters to find more properties
-          </p>
-        </div>
-      )}
-    </div>
+    </>
   );
 }

@@ -9,7 +9,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { Helmet } from "react-helmet-async";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -256,247 +256,267 @@ export default function CarDetails() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Image Display Logic */}
-      {(car.imageUrls ?? []).length > 1 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {car.imageUrls?.map((url, index) => (
-            <div key={index} className="relative">
-              <img
-                src={url}
-                alt={`Image ${index + 1}`}
-                className="w-full h-48 object-cover rounded-lg shadow-md"
-              />
-            </div>
-          ))}
-        </div>
-      ) : car.imageUrls?.length === 1 ? (
-        <div className="w-full">
-          <img
-            src={car.imageUrls[0]}
-            alt="Car Image"
-            className="w-full h-[400px] object-cover rounded-lg"
-          />
-        </div>
-      ) : (
-        <div className="col-span-2 text-center text-muted-foreground">
-          No images available
-        </div>
-      )}
-
-      <div className="mt-6 space-y-6">
-        <h1 className="text-3xl font-bold text-primary">{car.title}</h1>
-        <p className="text-lg text-muted-foreground leading-relaxed">
-          {car.description}
-        </p>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-muted-foreground">
-          <p className="text-foreground">
-            <strong className="text-primary">Price:</strong> ksh {car.price}
-          </p>
-          <p className="text-foreground">
-            <strong className="text-primary">Year:</strong> {car.year}
-          </p>
-          <p className="text-foreground">
-            <strong className="text-primary">Model:</strong> {car.model}
-          </p>
-          <p className="text-foreground">
-            <strong className="text-primary">Miles:</strong> {car.mileage}
-          </p>
-        </div>
-      </div>
-
-      <Card className="mt-8 shadow-lg border border-muted-foreground">
-        <CardContent className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Leave a Review</h2>
-
-          {/* Star Rating */}
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-lg font-medium">Your Rating:</span>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <span
-                key={star}
-                className={`cursor-pointer text-xl lg:text-2xl transition-colors ${
-                  rating >= star ? "text-yellow-500" : "text-gray-400"
-                }`}
-                onClick={() => setRating(star)}
-              >
-                ★
-              </span>
+    <>
+      <Helmet>
+        <title>{car.title} - Gift & Sons Properties</title>
+        <meta name="description" content={car.description} />
+        <meta property="og:title" content={car.title} />
+        <meta property="og:description" content={car.description} />
+        <meta
+          property="og:image"
+          content={car.imageUrls?.[0] || "/default-image.png"}
+        />
+        <meta
+          property="og:url"
+          content={`https://giftandsonsinternational.com/cars/${car.id}`}
+        />
+      </Helmet>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Image Display Logic */}
+        {(car.imageUrls ?? []).length > 1 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {car.imageUrls?.map((url, index) => (
+              <div key={index} className="relative">
+                <img
+                  src={url}
+                  loading="lazy"
+                  alt={`Image ${index + 1}`}
+                  className="w-full h-48 object-cover rounded-lg shadow-md"
+                />
+              </div>
             ))}
           </div>
-
-          {/* Review Input */}
-          <Textarea
-            className="bg-foreground"
-            placeholder="Write your review here..."
-            value={reviewMessage}
-            onChange={(e) => setReviewMessage(e.target.value)}
-          />
-
-          {/* Submit Button */}
-          <Button
-            className="w-full mt-4"
-            onClick={() =>
-              reviewMutation.mutate({
-                message: reviewMessage,
-                rating: rating,
-              })
-            }
-            disabled={reviewMutation.isPending}
-          >
-            Submit Review
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* All Reviews */}
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold">Reviews</h2>
-
-        {reviewsLoading ? (
-          <p className="text-gray-500">Loading reviews...</p>
-        ) : reviews.length > 0 ? (
-          <>
-            {showAllReviews ? (
-              // Show all reviews when 'See More' is clicked
-              [...reviews]
-                .sort((a, b) => b.rating - a.rating)
-                .map((review) => (
-                  <div
-                    key={review.id}
-                    className="border bg-gray-200 p-4 rounded-lg shadow-md mt-4"
-                  >
-                    <p className="text-sm text-gray-600">
-                      ⭐ {review.rating} / 5
-                    </p>
-                    <p className="text-black mt-4 font-medium">
-                      {review.message}
-                    </p>
-                    <p className="text-xs text-gray-500 text-right">
-                      {formatDate(review.createdAt)}
-                    </p>
-
-                    {isAdmin && !review.reply?.message && (
-                      <div className="flex justify-end mt-2">
-                        <Button
-                          className="text-blue-500 text-sm"
-                          onClick={() =>
-                            setReplyOpen(
-                              replyOpen === review.id ? null : review.id
-                            )
-                          }
-                        >
-                          {replyOpen === review.id ? "Cancel" : "Reply"}
-                        </Button>
-                      </div>
-                    )}
-
-                    {review.reply ? (
-                      <div className="mt-2 pt-3 ml-9 pl-3 bg-gray-500 rounded-lg border-l-4 border-gray-500">
-                        <strong className="text-primary font-semibold block">
-                          Gift & Sons Properties International
-                        </strong>
-                        <p className="mt-3 pb-3 pl-5 text-white text-sm">
-                          {review.reply.message}
-                        </p>
-                      </div>
-                    ) : null}
-
-                    {/* Reply Button - Only for Admin */}
-                    {/* Show Reply Form only if there's no reply */}
-                    {replyOpen === review.id && !review.reply && (
-                      <div className="mt-2">
-                        <Textarea
-                          value={replyMessages[review.id] || ""}
-                          onChange={(e) =>
-                            handleReplyChange(review.id, e.target.value)
-                          }
-                          placeholder="Write a reply..."
-                        />
-                        <Button
-                          className="mt-2"
-                          onClick={() => handleReply(review.id)}
-                          disabled={replyMutation.isPending}
-                        >
-                          {replyMutation.isPending ? "Posting..." : "Reply"}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                ))
-            ) : (
-              // Show only the first review initially
-              <div className="bg-gray-200 border p-4 rounded-lg shadow-md mt-4">
-                <p className="text-sm text-gray-600">
-                  ⭐ {reviews[0].rating}/5
-                </p>
-                <p className="text-black font-medium">{reviews[0].message}</p>
-                <p className="text-xs text-gray-500 text-right">
-                  {formatDate(reviews[0].createdAt)}
-                </p>
-
-                {isAdmin && !reviews[0].reply?.message && (
-                  <div className="flex justify-end mt-2">
-                    <Button
-                      className="text-blue-500 text-sm"
-                      onClick={() =>
-                        setReplyOpen(
-                          replyOpen === reviews[0].id ? null : reviews[0].id
-                        )
-                      }
-                    >
-                      {replyOpen === reviews[0].id ? "Cancel" : "Reply"}
-                    </Button>
-                  </div>
-                )}
-
-                {reviews[0].reply ? (
-                  <div className="mt-2 pt-3 ml-9 pl-3 bg-gray-500 rounded-lg border-l-4 border-gray-500">
-                    <strong className="text-primary font-semibold block">
-                      Gift & Sons Properties International
-                    </strong>
-                    <p className="mt-3 pb-3 pl-5 text-white text-sm">
-                      {reviews[0].reply.message}
-                    </p>
-                  </div>
-                ) : (
-                  <div>
-                    {/* Reply Button - Only for Admin */}
-                    {/* Show Reply Form only if there's no reply */}
-                    {replyOpen === reviews[0].id && !reviews[0].reply && (
-                      <div className="mt-2">
-                        <Textarea
-                          value={replyMessages[reviews[0].id] || ""}
-                          onChange={(e) =>
-                            handleReplyChange(reviews[0].id, e.target.value)
-                          }
-                          placeholder="Write a reply..."
-                        />
-                        <Button
-                          className="mt-2"
-                          onClick={() => handleReply(reviews[0].id)}
-                          disabled={replyMutation.isPending}
-                        >
-                          {replyMutation.isPending ? "Posting..." : "Reply"}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* "See More" Button - Toggles `showAllReviews` */}
-            {reviews.length > 1 && !showAllReviews && (
-              <Button className="mt-4" onClick={() => setShowAllReviews(true)}>
-                See More
-              </Button>
-            )}
-          </>
+        ) : car.imageUrls?.length === 1 ? (
+          <div className="w-full">
+            <img
+              src={car.imageUrls[0]}
+              alt="Car Image"
+              className="w-full h-[400px] object-cover rounded-lg"
+            />
+          </div>
         ) : (
-          <p className="text-gray-500 mt-4">No Reviews Yet</p>
+          <div className="col-span-2 text-center text-muted-foreground">
+            No images available
+          </div>
         )}
+
+        <div className="mt-6 space-y-6">
+          <h1 className="text-3xl font-bold text-primary">{car.title}</h1>
+          <p className="text-lg text-muted-foreground leading-relaxed">
+            {car.description}
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-muted-foreground">
+            <p className="text-foreground">
+              <strong className="text-primary">Price:</strong> ksh {car.price}
+            </p>
+            <p className="text-foreground">
+              <strong className="text-primary">Year:</strong> {car.year}
+            </p>
+            <p className="text-foreground">
+              <strong className="text-primary">Model:</strong> {car.model}
+            </p>
+            <p className="text-foreground">
+              <strong className="text-primary">Miles:</strong> {car.mileage}
+            </p>
+          </div>
+        </div>
+
+        <Card className="mt-8 shadow-lg border border-muted-foreground">
+          <CardContent className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Leave a Review</h2>
+
+            {/* Star Rating */}
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-lg font-medium">Your Rating:</span>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span
+                  key={star}
+                  className={`cursor-pointer text-xl lg:text-2xl transition-colors ${
+                    rating >= star ? "text-yellow-500" : "text-gray-400"
+                  }`}
+                  onClick={() => setRating(star)}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
+
+            {/* Review Input */}
+            <Textarea
+              className="bg-foreground"
+              placeholder="Write your review here..."
+              value={reviewMessage}
+              onChange={(e) => setReviewMessage(e.target.value)}
+            />
+
+            {/* Submit Button */}
+            <Button
+              className="w-full mt-4"
+              onClick={() =>
+                reviewMutation.mutate({
+                  message: reviewMessage,
+                  rating: rating,
+                })
+              }
+              disabled={reviewMutation.isPending}
+            >
+              Submit Review
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* All Reviews */}
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold">Reviews</h2>
+
+          {reviewsLoading ? (
+            <p className="text-gray-500">Loading reviews...</p>
+          ) : reviews.length > 0 ? (
+            <>
+              {showAllReviews ? (
+                // Show all reviews when 'See More' is clicked
+                [...reviews]
+                  .sort((a, b) => b.rating - a.rating)
+                  .map((review) => (
+                    <div
+                      key={review.id}
+                      className="border bg-gray-200 p-4 rounded-lg shadow-md mt-4"
+                    >
+                      <p className="text-sm text-gray-600">
+                        ⭐ {review.rating} / 5
+                      </p>
+                      <p className="text-black mt-4 font-medium">
+                        {review.message}
+                      </p>
+                      <p className="text-xs text-gray-500 text-right">
+                        {formatDate(review.createdAt)}
+                      </p>
+
+                      {isAdmin && !review.reply?.message && (
+                        <div className="flex justify-end mt-2">
+                          <Button
+                            className="text-blue-500 text-sm"
+                            onClick={() =>
+                              setReplyOpen(
+                                replyOpen === review.id ? null : review.id
+                              )
+                            }
+                          >
+                            {replyOpen === review.id ? "Cancel" : "Reply"}
+                          </Button>
+                        </div>
+                      )}
+
+                      {review.reply ? (
+                        <div className="mt-2 pt-3 ml-9 pl-3 bg-gray-500 rounded-lg border-l-4 border-gray-500">
+                          <strong className="text-primary font-semibold block">
+                            Gift & Sons Properties International
+                          </strong>
+                          <p className="mt-3 pb-3 pl-5 text-white text-sm">
+                            {review.reply.message}
+                          </p>
+                        </div>
+                      ) : null}
+
+                      {/* Reply Button - Only for Admin */}
+                      {/* Show Reply Form only if there's no reply */}
+                      {replyOpen === review.id && !review.reply && (
+                        <div className="mt-2">
+                          <Textarea
+                            value={replyMessages[review.id] || ""}
+                            onChange={(e) =>
+                              handleReplyChange(review.id, e.target.value)
+                            }
+                            placeholder="Write a reply..."
+                          />
+                          <Button
+                            className="mt-2"
+                            onClick={() => handleReply(review.id)}
+                            disabled={replyMutation.isPending}
+                          >
+                            {replyMutation.isPending ? "Posting..." : "Reply"}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  ))
+              ) : (
+                // Show only the first review initially
+                <div className="bg-gray-200 border p-4 rounded-lg shadow-md mt-4">
+                  <p className="text-sm text-gray-600">
+                    ⭐ {reviews[0].rating}/5
+                  </p>
+                  <p className="text-black font-medium">{reviews[0].message}</p>
+                  <p className="text-xs text-gray-500 text-right">
+                    {formatDate(reviews[0].createdAt)}
+                  </p>
+
+                  {isAdmin && !reviews[0].reply?.message && (
+                    <div className="flex justify-end mt-2">
+                      <Button
+                        className="text-blue-500 text-sm"
+                        onClick={() =>
+                          setReplyOpen(
+                            replyOpen === reviews[0].id ? null : reviews[0].id
+                          )
+                        }
+                      >
+                        {replyOpen === reviews[0].id ? "Cancel" : "Reply"}
+                      </Button>
+                    </div>
+                  )}
+
+                  {reviews[0].reply ? (
+                    <div className="mt-2 pt-3 ml-9 pl-3 bg-gray-500 rounded-lg border-l-4 border-gray-500">
+                      <strong className="text-primary font-semibold block">
+                        Gift & Sons Properties International
+                      </strong>
+                      <p className="mt-3 pb-3 pl-5 text-white text-sm">
+                        {reviews[0].reply.message}
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      {/* Reply Button - Only for Admin */}
+                      {/* Show Reply Form only if there's no reply */}
+                      {replyOpen === reviews[0].id && !reviews[0].reply && (
+                        <div className="mt-2">
+                          <Textarea
+                            value={replyMessages[reviews[0].id] || ""}
+                            onChange={(e) =>
+                              handleReplyChange(reviews[0].id, e.target.value)
+                            }
+                            placeholder="Write a reply..."
+                          />
+                          <Button
+                            className="mt-2"
+                            onClick={() => handleReply(reviews[0].id)}
+                            disabled={replyMutation.isPending}
+                          >
+                            {replyMutation.isPending ? "Posting..." : "Reply"}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* "See More" Button - Toggles `showAllReviews` */}
+              {reviews.length > 1 && !showAllReviews && (
+                <Button
+                  className="mt-4"
+                  onClick={() => setShowAllReviews(true)}
+                >
+                  See More
+                </Button>
+              )}
+            </>
+          ) : (
+            <p className="text-gray-500 mt-4">No Reviews Yet</p>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

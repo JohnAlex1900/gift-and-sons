@@ -25,6 +25,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
           property.imageUrls?.[0] ||
           "https://images.unsplash.com/photo-1560518883-ce09059eeffa"
         }
+        loading="lazy"
         alt={property.title}
         className={`w-full h-48 object-cover transition-opacity ${
           imageLoaded ? "opacity-100" : "opacity-0"

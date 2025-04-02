@@ -11,6 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Helmet } from "react-helmet-async";
 
 const socialLinks = [
   {
@@ -38,82 +39,106 @@ const socialLinks = [
 
 export default function Contact() {
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-muted">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-primary text-4xl font-bold mb-4">Contact Us</h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Whether you're looking to buy, sell, or rent a property, our team of
-            experts is here to help you every step of the way.
-          </p>
-        </div>
+    <>
+      <Helmet>
+        <title>Contact - Gift & Sons Properties</title>
+        <meta
+          name="description"
+          content="Contact Us - Gift & Sons Properties"
+        />
+        <meta property="og:title" content="Contact - Gift & Sons Properties" />
+        <meta
+          property="og:description"
+          content="Contact Us - Gift & Sons Properties"
+        />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          <div>
-            <div className="bg-card rounded-lg p-8">
-              <h2 className="text-2xl font-semibold mb-6">Visit Our Office</h2>
-              <div className="space-y-4">
-                <img
-                  src="https://images.unsplash.com/photo-1497366754035-f200968a6e72"
-                  alt="Office"
-                  className="w-full h-48 object-cover rounded-lg mb-6"
-                />
-                <div className="space-y-2">
-                  <p className="flex items-center gap-2">
-                    <span className="font-semibold">Address:</span>
-                    <span className="text-muted-foreground">
-                      20117, Biashara Street, Naivasha, Kenya
-                    </span>
-                    <span className="text-muted-foreground">
-                      Lois Plaza 1st Floor, Room 44
-                    </span>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <span className="font-semibold">Phone:</span>
-                    <span className="text-muted-foreground">
-                      Main: +254 720 464627
-                      <p>Substitue Contact 1: +254716080793 / David</p>
-                      <li>Substitue Contact 2: +1 (717) 333-7547 / Zacharia</li>
-                      <p>Substitue Contact 3: +254780464626 / Gladwell</p>
-                    </span>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <span className="font-semibold">Email:</span>
-                    <span className="text-muted-foreground">
-                      giftnsons@gmail.com
-                    </span>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <span className="font-semibold">Hours:</span>
-                    <span className="text-muted-foreground">Open 24/7</span>
-                  </p>
+        <meta
+          property="og:url"
+          content={`https://giftandsonsinternational.com/contact`}
+        />
+      </Helmet>
+      <div className="min-h-[calc(100vh-4rem)] bg-muted">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center mb-12">
+            <h1 className="text-primary text-4xl font-bold mb-4">Contact Us</h1>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Whether you're looking to buy, sell, or rent a property, our team
+              of experts is here to help you every step of the way.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            <div>
+              <div className="bg-card rounded-lg p-8">
+                <h2 className="text-2xl font-semibold mb-6">
+                  Visit Our Office
+                </h2>
+                <div className="space-y-4">
+                  <img
+                    src="https://images.unsplash.com/photo-1497366754035-f200968a6e72"
+                    alt="Office"
+                    loading="lazy"
+                    className="w-full h-48 object-cover rounded-lg mb-6"
+                  />
+                  <div className="space-y-2">
+                    <p className="flex items-center gap-2">
+                      <span className="font-semibold">Address:</span>
+                      <span className="text-muted-foreground">
+                        20117, Biashara Street, Naivasha, Kenya
+                      </span>
+                      <span className="text-muted-foreground">
+                        Lois Plaza 1st Floor, Room 44
+                      </span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <span className="font-semibold">Phone:</span>
+                      <span className="text-muted-foreground">
+                        Main: +254 720 464627
+                        <p>Substitue Contact 1: +254716080793 / David</p>
+                        <li>
+                          Substitue Contact 2: +1 (717) 333-7547 / Zacharia
+                        </li>
+                        <p>Substitue Contact 3: +254780464626 / Gladwell</p>
+                      </span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <span className="font-semibold">Email:</span>
+                      <span className="text-muted-foreground">
+                        giftnsons@gmail.com
+                      </span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <span className="font-semibold">Hours:</span>
+                      <span className="text-muted-foreground">Open 24/7</span>
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div>
-            <ContactSection />
+            <div>
+              <ContactSection />
+            </div>
           </div>
-        </div>
-        <div className="flex items-center justify-start gap-8 mt-8 text-2xl">
-          {socialLinks.map(({ icon: Icon, url, label }) => (
-            <Tooltip key={label}>
-              <TooltipTrigger asChild>
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary transition-transform transform hover:scale-110"
-                >
-                  <Icon size={28} />
-                </a>
-              </TooltipTrigger>
-              <TooltipContent>{label}</TooltipContent>
-            </Tooltip>
-          ))}
+          <div className="flex items-center justify-start gap-8 mt-8 text-2xl">
+            {socialLinks.map(({ icon: Icon, url, label }) => (
+              <Tooltip key={label}>
+                <TooltipTrigger asChild>
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-transform transform hover:scale-110"
+                  >
+                    <Icon size={28} />
+                  </a>
+                </TooltipTrigger>
+                <TooltipContent>{label}</TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
