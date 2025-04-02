@@ -12,6 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Helmet } from "react-helmet-async";
+import React from "react";
 
 const socialLinks = [
   {

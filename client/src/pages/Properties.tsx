@@ -5,6 +5,7 @@ import { Property } from "@/types";
 import { useState } from "react";
 import axios from "axios";
 import { Helmet } from "react-helmet-async";
+import React from "react";
 
 export default function Properties() {
   const [filters, setFilters] = useState<{

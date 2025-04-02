@@ -2,6 +2,7 @@
 
 import { CustomUploadButton } from "@/lib/uploadthing";
 import { toast } from "react-hot-toast";
+import React from "react";
 
 interface UploadButtonProps {
   setImageUrls: (urls: string[]) => void;

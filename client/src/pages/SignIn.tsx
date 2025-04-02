@@ -19,6 +19,7 @@ import { Login } from "@/types";
 import { Link, useLocation } from "wouter";
 import { FirebaseError } from "firebase/app";
 import { useAuthState } from "react-firebase-hooks/auth";
+import React from "react";
 
 export default function SignIn() {
   const { toast } = useToast();

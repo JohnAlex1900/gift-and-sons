@@ -14,6 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import React from "react";
 
 const contactSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),

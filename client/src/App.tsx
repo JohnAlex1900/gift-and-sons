@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { TooltipProvider } from "./components/ui/tooltip";
 import CarDetails from "./pages/CarDetails";
 import Cars from "./pages/Cars";
+import React from "react";
 
 function RedirectToHome() {
   const [, navigate] = useLocation();

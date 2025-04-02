@@ -13,6 +13,13 @@ export default defineConfig(({ mode }) => {
 
   const plugins = [react(), runtimeErrorOverlay(), themePlugin()];
 
+  plugins.push(
+    sitemap({
+      hostname: "https://giftandsonsinternational.com",
+      dynamicRoutes: ["/properties/:id", "/cars/:id"],
+    })
+  );
+
   if (process.env.NODE_ENV !== "production" && process.env.REPL_ID) {
     import("@replit/vite-plugin-cartographer")
       .then(({ cartographer }) => {
@@ -32,12 +39,7 @@ export default defineConfig(({ mode }) => {
   console.log("Backend URL:", backendUrl);
 
   return {
-    plugins: [
-      sitemap({
-        hostname: "https://giftandsonsinternational.com",
-        dynamicRoutes: ["/properties/:id", "/cars/:id"], // Add dynamic routes if needed
-      }),
-    ],
+    plugins,
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "src"), // Alias for client/src

@@ -10,6 +10,7 @@ import { auth } from "@/lib/firebase";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
+import React from "react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import hero_image from "../../assets/hero.jpg";
+import React from "react";
 
 export function Hero() {
   return (

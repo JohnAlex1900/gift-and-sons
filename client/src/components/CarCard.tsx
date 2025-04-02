@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Car } from "@/types";
 import { Link } from "wouter";
 import { useState } from "react";
+import React from "react";
 
 interface CarCardProps {
   car: Car;

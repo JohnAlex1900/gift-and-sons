@@ -19,6 +19,7 @@ import { Register } from "@/types";
 import { Link, useLocation } from "wouter";
 import { FirebaseError } from "firebase/app";
 import { useAuthState } from "react-firebase-hooks/auth";
+import React from "react";
 
 export default function SignUp() {
   const { toast } = useToast();

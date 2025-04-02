@@ -5,6 +5,7 @@ import axios from "axios";
 import { CarCard } from "@/components/CarCard";
 import { CarSearchFilters } from "@/components/CarSearchFilters";
 import { Helmet } from "react-helmet-async";
+import React from "react";
 
 export default function Cars() {
   const [filters, setFilters] = useState<{

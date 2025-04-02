@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { useState } from "react";
+import React from "react";
 
 interface SearchFiltersProps {
   onFiltersChange: (filters: any) => void;
