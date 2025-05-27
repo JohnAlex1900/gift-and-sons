@@ -23,22 +23,12 @@ const requiredEnvVars = {
   appId: appId,
 };
 
-// Debug configuration (remove in production)
-console.log("Firebase Configuration Check:", {
-  apiKeyExists: !!requiredEnvVars.apiKey,
-  projectIdExists: !!requiredEnvVars.projectId,
-  appIdExists: !!requiredEnvVars.appId,
-});
-
 // Validate Firebase configuration
 Object.entries(requiredEnvVars).forEach(([key, value]) => {
   if (!value) {
     throw new Error(`Missing Firebase configuration: ${key}`);
   }
 });
-
-console.log("Environment Variables:", import.meta.env);
-console.log("VITE_FIREBASE_API_KEY:", import.meta.env.VITE_FIREBASE_API_KEY);
 
 const firebaseConfig = {
   apiKey: "AIzaSyBUoow980B4TWoEhVSYuTfRbbvspQdL6kk",

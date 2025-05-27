@@ -127,9 +127,44 @@ export const createReview = async (review: {
   const reviewWithDateString = {
     ...review,
     createdAt: new Date().toISOString().split("T")[0], // Ensure createdAt is included
+    viewed: false,
   };
   const newReviewRef = await reviewsCollection.add(reviewWithDateString);
   return { id: newReviewRef.id, ...reviewWithDateString };
+};
+
+export const markReviewsAsViewed = async ({
+  propertyId,
+  carId,
+}: {
+  propertyId?: string;
+  carId?: string;
+}) => {
+  let query = reviewsCollection.where("viewed", "==", false);
+
+  if (propertyId) {
+    query = query.where("propertyId", "==", propertyId);
+  } else if (carId) {
+    query = query.where("carId", "==", carId);
+  }
+
+  const snapshot = await query.get();
+
+  const batch = reviewsCollection.firestore.batch();
+
+  snapshot.docs.forEach((doc) => {
+    batch.update(doc.ref, { viewed: true });
+  });
+
+  await batch.commit();
+
+  return snapshot.size; // number of reviews marked as viewed
+};
+
+export const countUnviewedReviews = async () => {
+  const query = reviewsCollection.where("viewed", "==", false);
+  const snapshot = await query.get();
+  return snapshot.size;
 };
 
 //Replies
@@ -295,6 +330,8 @@ const storage = {
   addCar,
   updateCar,
   deleteCar,
+  markReviewsAsViewed,
+  countUnviewedReviews,
 };
 
 export default storage;

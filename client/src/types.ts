@@ -37,7 +37,15 @@ export interface Review {
   message: string;
   rating: number;
   createdAt: string;
+  viewed: boolean;
   reply?: { message: string; createdAt: Date } | null;
+}
+
+export interface Item {
+  id: string;
+  title: string;
+  price: string;
+  imageUrls: string;
 }
 
 export interface Login {

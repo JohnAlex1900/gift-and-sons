@@ -143,6 +143,44 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  app.patch(
+    "/api/reviews/mark_viewed",
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { propertyId, carId } = req.body;
+
+        if (!propertyId && !carId) {
+          return res
+            .status(400)
+            .json({ message: "propertyId or carId required" });
+        }
+
+        const markedCount = await storage.markReviewsAsViewed({
+          propertyId,
+          carId,
+        });
+
+        res.json({ success: true, markedCount });
+      } catch (error) {
+        console.error("❌ Error marking reviews as viewed:", error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/reviews/unviewed_count",
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const count = await storage.countUnviewedReviews();
+        res.json({ count });
+      } catch (error) {
+        console.error("❌ Error getting unviewed review count:", error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
   //Replies
   app.post(
     "/api/reviews/reply",
@@ -203,21 +241,6 @@ export async function registerRoutes(app: Express) {
         res.json(reviews);
       } catch (error) {
         console.error("❌ Error fetching reviews by car:", error);
-        res.status(500).json({ message: "Server error" });
-      }
-    }
-  );
-
-  app.get(
-    "/api/reviews/user/:userId",
-    requireAuth,
-    async (req: AuthenticatedRequest, res: Response) => {
-      const { userId } = req.params;
-      try {
-        const reviews = await storage.getReviewsByUser(userId);
-        res.json(reviews);
-      } catch (error) {
-        console.error("❌ Error fetching reviews by user:", error);
         res.status(500).json({ message: "Server error" });
       }
     }

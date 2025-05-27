@@ -8,11 +8,38 @@ import { Car, Review } from "@/types";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import React from "react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+async function markReviewsAsViewed({
+  propertyId,
+  carId,
+}: {
+  propertyId?: string;
+  carId?: string;
+}) {
+  try {
+    const response = await fetch("/api/reviews/mark_viewed", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ propertyId, carId }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to mark reviews as viewed");
+    }
+
+    const data = await response.json();
+    console.log(`Marked ${data.markedCount} reviews as viewed.`);
+  } catch (error) {
+    console.error("Error marking reviews as viewed:", error);
+  }
+}
 
 export default function CarDetails() {
   const { id } = useParams();
@@ -30,6 +57,10 @@ export default function CarDetails() {
   const [replyOpen, setReplyOpen] = useState<string | null>(null);
 
   const isAdmin = user?.email === import.meta.env.VITE_ADMIN_EMAIL;
+
+  useEffect(() => {
+    markReviewsAsViewed({ carId: id });
+  }, [id]);
 
   const handleReplyChange = (reviewId: string, message: string) => {
     setReplyMessages((prev) => ({ ...prev, [reviewId]: message }));
@@ -136,11 +167,9 @@ export default function CarDetails() {
   const { data: reviews = [], isLoading: reviewsLoading } = useQuery<Review[]>({
     queryKey: [`/api/reviews/property/${id}`],
     queryFn: async () => {
-      console.log("🔄 Fetching reviews for property:", id); // Debugging log
       if (!id) return null;
 
       const token = await user?.getIdToken();
-      console.log("🛡️ Auth Token:", token);
 
       const response = await fetch(
         `${API_BASE_URL}/api/reviews/property/${id}`,
@@ -154,7 +183,6 @@ export default function CarDetails() {
         throw new Error("Failed to fetch reviews");
       }
       const reviewsData = await response.json();
-      console.log("📅 Raw Reviews Data:", reviewsData); // Debugging
 
       return reviewsData;
     },

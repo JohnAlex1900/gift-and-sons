@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Router, Route, Switch, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -11,23 +12,22 @@ import Contact from "@/pages/Contact";
 import Admin from "@/pages/Admin";
 import SignIn from "@/pages/SignIn";
 import SignUp from "@/pages/SignUp";
-import { getAuth, getRedirectResult } from "firebase/auth";
-import { useEffect } from "react";
+import { getAuth, getRedirectResult, onAuthStateChanged } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { TooltipProvider } from "./components/ui/tooltip";
 import CarDetails from "./pages/CarDetails";
 import Cars from "./pages/Cars";
 import React from "react";
+import ReviewsPage from "./pages/Reviews";
 
 function RedirectToHome() {
   const [, navigate] = useLocation();
 
-  // Redirect to home page
   useEffect(() => {
     navigate("/");
   }, []);
 
-  return null; // No UI, just redirects
+  return null;
 }
 
 function AppRouter() {
@@ -42,6 +42,7 @@ function AppRouter() {
       <Route path="/admin" component={Admin} />
       <Route path="/signin" component={SignIn} />
       <Route path="/signup" component={SignUp} />
+      <Route path="/reviews" component={ReviewsPage} />
       <Route component={RedirectToHome} />
     </Switch>
   );
@@ -50,7 +51,9 @@ function AppRouter() {
 export default function App() {
   const { toast } = useToast();
   const auth = getAuth();
+  const toastShown = useRef(false); // Prevent multiple toasts
 
+  // Sign-in redirect toast
   useEffect(() => {
     getRedirectResult(auth)
       .then((result) => {
@@ -69,6 +72,35 @@ export default function App() {
           description: "Failed to complete authentication. Please try again.",
         });
       });
+  }, []);
+
+  // Show "new reviews" toast once per session
+  useEffect(() => {
+    onAuthStateChanged(auth, async (user) => {
+      const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+
+      if (user?.email === adminEmail && !toastShown.current) {
+        try {
+          const response = await fetch(
+            `${import.meta.env.VITE_API_BASE_URL}/api/reviews/unviewed_count`
+          );
+          const data = await response.json();
+
+          if (data.count > 0) {
+            toast({
+              title: "🔔 New Reviews",
+              description: `You have ${data.count} unviewed review${
+                data.count > 1 ? "s" : ""
+              }.`,
+            });
+          }
+
+          toastShown.current = true;
+        } catch (err) {
+          console.error("Failed to fetch new reviews:", err);
+        }
+      }
+    });
   }, []);
 
   return (
