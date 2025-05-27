@@ -103,23 +103,20 @@ function ReviewsPage() {
   return (
     <>
       <Helmet>
-        <title>Properties - Gift & Sons Properties</title>
+        <title>Reviews - Gift & Sons Properties</title>
         <meta
           name="description"
-          content="Browse properties for sale and rent in Gift & Sons"
+          content="Browse reviews for properties and cars for sale and rent in Gift & Sons"
         />
-        <meta
-          property="og:title"
-          content="Properties - Gift & Sons Properties"
-        />
+        <meta property="og:title" content="Reviews - Gift & Sons Properties" />
         <meta
           property="og:description"
-          content="Browse properties for sale and rent in Gift & Sons"
+          content="Browse reviews for properties and cars for sale and rent in Gift & Sons"
         />
 
         <meta
           property="og:url"
-          content={`https://giftandsonsinternational.com/properties`}
+          content={`https://giftandsonsinternational.com/reviews`}
         />
       </Helmet>
       <div className="max-w-6xl mx-auto p-4">
