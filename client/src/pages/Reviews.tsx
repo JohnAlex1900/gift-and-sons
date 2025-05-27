@@ -139,7 +139,7 @@ function ReviewsPage() {
                   <CardContent className="p-4">
                     <h2 className="text-xl font-semibold mb-1">{item.title}</h2>
                     <p className="text-sm text-gray-500 mb-2">
-                      ${item.price.toLocaleString()}
+                      ksh{item.price.toLocaleString()}
                     </p>
                     <div className="flex justify-between text-sm">
                       <span>{itemReviews.length} reviews</span>
