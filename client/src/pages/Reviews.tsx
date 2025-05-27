@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Star } from "lucide-react";
 import { Review, Item } from "@/types";
+import { Helmet } from "react-helmet-async";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -100,70 +101,95 @@ function ReviewsPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">All Reviews</h1>
+    <>
+      <Helmet>
+        <title>Properties - Gift & Sons Properties</title>
+        <meta
+          name="description"
+          content="Browse properties for sale and rent in Gift & Sons"
+        />
+        <meta
+          property="og:title"
+          content="Properties - Gift & Sons Properties"
+        />
+        <meta
+          property="og:description"
+          content="Browse properties for sale and rent in Gift & Sons"
+        />
 
-      {hasReviews ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {Object.entries(reviewsByItem).map(([itemId, itemReviews]) => {
-            const item = items[itemId];
-            if (!item) return null;
+        <meta
+          property="og:url"
+          content={`https://giftandsonsinternational.com/properties`}
+        />
+      </Helmet>
+      <div className="max-w-6xl mx-auto p-4">
+        <h1 className="text-3xl font-bold mb-6">All Reviews</h1>
 
-            const totalRating = itemReviews.reduce(
-              (acc, r) => acc + r.rating,
-              0
-            );
-            const avgRating = (totalRating / itemReviews.length).toFixed(1);
-            const imageUrl =
-              item.imageUrls?.[0] ||
-              "https://images.unsplash.com/photo-1724120932030-d8210a77deed?q=80&w=1615&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+        {hasReviews ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {Object.entries(reviewsByItem).map(([itemId, itemReviews]) => {
+              const item = items[itemId];
+              if (!item) return null;
 
-            // Determine if it's a property or a car
-            const isProperty = !!itemReviews[0].propertyId; // or any property-unique key
-            const routePath = isProperty
-              ? `/properties/${itemId}`
-              : `/cars/${itemId}`;
+              const totalRating = itemReviews.reduce(
+                (acc, r) => acc + r.rating,
+                0
+              );
+              const avgRating = (totalRating / itemReviews.length).toFixed(1);
+              const imageUrl =
+                item.imageUrls?.[0] ||
+                "https://images.unsplash.com/photo-1724120932030-d8210a77deed?q=80&w=1615&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
 
-            return (
-              <Link
-                to={routePath}
-                key={itemId}
-                className="block hover:shadow-2xl transition-shadow rounded-2xl"
-              >
-                <Card className="shadow-xl rounded-2xl cursor-pointer">
-                  <img
-                    src={imageUrl}
-                    alt={item.title}
-                    className="w-full h-40 object-cover rounded-t-2xl"
-                  />
-                  <CardContent className="p-4">
-                    <h2 className="text-xl font-semibold mb-1">{item.title}</h2>
-                    <p className="text-sm text-gray-500 mb-2">
-                      ksh{item.price.toLocaleString()}
-                    </p>
-                    <div className="flex justify-between text-sm">
-                      <span>{itemReviews.length} reviews</span>
-                      <span className="flex items-center gap-1">
-                        {avgRating} <Star className="w-4 h-4 text-yellow-500" />
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="text-center mt-10">
-          <p className="text-lg font-medium mb-4">
-            No reviews have been submitted yet.
-          </p>
-          <Link to="/properties">
-            <Button>View Properties</Button>
-          </Link>
-        </div>
-      )}
-    </div>
+              // Determine if it's a property or a car
+              const isProperty = !!itemReviews[0].propertyId; // or any property-unique key
+              const routePath = isProperty
+                ? `/properties/${itemId}`
+                : `/cars/${itemId}`;
+
+              return (
+                <Link
+                  to={routePath}
+                  key={itemId}
+                  className="block hover:shadow-2xl transition-shadow rounded-2xl"
+                >
+                  <Card className="shadow-xl rounded-2xl cursor-pointer">
+                    <img
+                      src={imageUrl}
+                      alt={item.title}
+                      className="w-full h-40 object-cover rounded-t-2xl"
+                    />
+                    <CardContent className="p-4">
+                      <h2 className="text-xl font-semibold mb-1">
+                        {item.title}
+                      </h2>
+                      <p className="text-sm text-gray-500 mb-2">
+                        ksh{item.price.toLocaleString()}
+                      </p>
+                      <div className="flex justify-between text-sm">
+                        <span>{itemReviews.length} reviews</span>
+                        <span className="flex items-center gap-1">
+                          {avgRating}{" "}
+                          <Star className="w-4 h-4 text-yellow-500" />
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center mt-10">
+            <p className="text-lg font-medium mb-4">
+              No reviews have been submitted yet.
+            </p>
+            <Link to="/properties">
+              <Button>View Properties</Button>
+            </Link>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 
