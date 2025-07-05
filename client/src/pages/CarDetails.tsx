@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useParams } from "wouter";
+import { Link, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,7 +8,7 @@ import { Car, Review } from "@/types";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import React from "react";
 
@@ -42,6 +42,7 @@ async function markReviewsAsViewed({
 }
 
 export default function CarDetails() {
+  const reviewRef = useRef<HTMLDivElement>(null);
   const { id } = useParams();
   const [user] = useAuthState(auth);
   const { toast } = useToast();
@@ -59,11 +60,48 @@ export default function CarDetails() {
   const isAdmin = user?.email === import.meta.env.VITE_ADMIN_EMAIL;
 
   useEffect(() => {
+    const hash = window.location.hash;
+
+    if (hash === "#review") {
+      // Delay scroll to ensure DOM is painted
+      setTimeout(() => {
+        reviewRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 300); // 300ms is usually enough
+    }
+  }, []);
+
+  useEffect(() => {
     markReviewsAsViewed({ carId: id });
   }, [id]);
 
   const handleReplyChange = (reviewId: string, message: string) => {
     setReplyMessages((prev) => ({ ...prev, [reviewId]: message }));
+  };
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}${window.location.pathname}#review`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: car?.title || "Check this out",
+          url,
+        });
+      } catch (err) {
+        console.error("Sharing failed", err);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        toast({ title: "Link copied to clipboard!" });
+      } catch (err) {
+        console.error("Clipboard copy failed", err);
+        toast({
+          title: "Failed to copy link",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const replyMutation = useMutation({
@@ -199,10 +237,21 @@ export default function CarDetails() {
     }) => {
       if (!car) throw new Error("Property details not available");
 
+      if (!user) {
+        toast({
+          variant: "destructive",
+          title: "Please sign in",
+          description: "You must be signed in to leave a review.",
+        });
+        return;
+      }
+
       const review: Partial<Review> = {
         propertyId: id,
         message,
         rating,
+        userId: user.uid,
+        username: user.displayName || "Anonymous",
         createdAt: new Date().toISOString(), // ISO format for consistency
       };
 
@@ -350,7 +399,11 @@ export default function CarDetails() {
           </div>
         </div>
 
-        <Card className="mt-8 shadow-lg border border-muted-foreground">
+        <Card
+          id="review"
+          ref={reviewRef}
+          className="mt-8 shadow-lg border border-muted-foreground"
+        >
           <CardContent className="p-6">
             <h2 className="text-xl font-semibold mb-4">Leave a Review</h2>
 
@@ -379,18 +432,26 @@ export default function CarDetails() {
             />
 
             {/* Submit Button */}
-            <Button
-              className="w-full mt-4"
-              onClick={() =>
-                reviewMutation.mutate({
-                  message: reviewMessage,
-                  rating: rating,
-                })
-              }
-              disabled={reviewMutation.isPending}
-            >
-              Submit Review
-            </Button>
+            {!user ? (
+              <Link href="/signin">
+                <Button className="w-full mt-2">
+                  Sign in to leave a review
+                </Button>
+              </Link>
+            ) : (
+              <Button
+                className="w-full mt-2"
+                onClick={() =>
+                  reviewMutation.mutate({
+                    message: reviewMessage,
+                    rating: rating,
+                  })
+                }
+                disabled={reviewMutation.isPending}
+              >
+                Submit Review
+              </Button>
+            )}
           </CardContent>
         </Card>
 
@@ -419,6 +480,9 @@ export default function CarDetails() {
                       </p>
                       <p className="text-xs text-gray-500 text-right">
                         {formatDate(review.createdAt)}
+                      </p>
+                      <p className="text-sm text-primary font-semibold">
+                        {review.username || "Anonymous"}
                       </p>
 
                       {isAdmin && !review.reply?.message && (
@@ -478,6 +542,9 @@ export default function CarDetails() {
                   <p className="text-black font-medium">{reviews[0].message}</p>
                   <p className="text-xs text-gray-500 text-right">
                     {formatDate(reviews[0].createdAt)}
+                  </p>
+                  <p className="text-sm text-primary font-semibold">
+                    {reviews[0].username || "Anonymous"}
                   </p>
 
                   {isAdmin && !reviews[0].reply?.message && (

@@ -38,6 +38,8 @@ export interface Review {
   rating: number;
   createdAt: string;
   viewed: boolean;
+  username: string;
+  userId: string;
   reply?: { message: string; createdAt: Date } | null;
 }
 

@@ -123,6 +123,8 @@ export const createReview = async (review: {
   carId?: string;
   message: string;
   rating: number;
+  userId: string;
+  username: string;
 }) => {
   const reviewWithDateString = {
     ...review,
