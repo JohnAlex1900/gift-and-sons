@@ -129,7 +129,7 @@ export function Footer() {
           <p>
             Built by :{" "}
             <a
-              href="https://startech-softwares.netlify.app/"
+              href="https://startech-softwares.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:text-orange-300"
