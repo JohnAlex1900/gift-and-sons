@@ -52,10 +52,19 @@ export const deleteUser = async (id: string) => {
 // Fetch all properties
 export const getAllProperties = async () => {
   const snapshot = await propertiesCollection.get();
-  return snapshot.docs.map((doc) => ({
+
+  const properties = snapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
   }));
+
+  // Sort featured properties first
+  properties.sort((a, b) => {
+    if (a.featured === b.featured) return 0;
+    return a.featured ? -1 : 1;
+  });
+
+  return properties;
 };
 
 // Get a single property by ID
