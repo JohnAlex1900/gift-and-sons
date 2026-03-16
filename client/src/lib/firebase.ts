@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { getApp, getApps, initializeApp } from "firebase/app";
 import {
   getAuth,
   signInWithPopup,
@@ -7,44 +7,37 @@ import {
 } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 
-const apiKey =
-  import.meta.env.VITE_FIREBASE_API_KEY ||
-  "AIzaSyBUoow980B4TWoEhVSYuTfRbbvspQdL6kk";
-const projectId =
-  import.meta.env.VITE_FIREBASE_PROJECT_ID || "giftandsons-f2952";
-const appId =
-  import.meta.env.VITE_FIREBASE_APP_ID ||
-  "1:511753409697:web:07d449384bb60b5bf84ce0";
+const getRequiredFirebaseEnv = (key: keyof ImportMetaEnv) => {
+  const value = import.meta.env[key];
 
-// Ensure all required configuration values are present
-const requiredEnvVars = {
-  apiKey: apiKey,
-  projectId: projectId,
-  appId: appId,
+  if (!value) {
+    throw new Error(`Missing required Firebase environment variable: ${key}`);
+  }
+
+  return value;
 };
 
-// Validate Firebase configuration
-Object.entries(requiredEnvVars).forEach(([key, value]) => {
-  if (!value) {
-    throw new Error(`Missing Firebase configuration: ${key}`);
-  }
-});
+const apiKey = getRequiredFirebaseEnv("VITE_FIREBASE_API_KEY");
+const projectId = getRequiredFirebaseEnv("VITE_FIREBASE_PROJECT_ID");
+const appId = getRequiredFirebaseEnv("VITE_FIREBASE_APP_ID");
+const authDomain =
+  import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || `${projectId}.firebaseapp.com`;
+const storageBucket =
+  import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || `${projectId}.appspot.com`;
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBUoow980B4TWoEhVSYuTfRbbvspQdL6kk",
-  authDomain: `${projectId}.firebaseapp.com`,
-  projectId: projectId,
-  storageBucket: `${projectId}.appspot.com`,
-  appId: appId,
+  apiKey,
+  authDomain,
+  projectId,
+  storageBucket,
+  appId,
 };
 
 let auth: Auth;
-let db: Firestore; // Explicitly define the Firestore type
+let db: Firestore;
 
 try {
-  console.log("Initializing Firebase app...");
-  const app = initializeApp(firebaseConfig);
-  console.log("Firebase app initialized successfully");
+  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
   auth = getAuth(app);
   db = getFirestore(app);
@@ -59,13 +52,10 @@ googleAuthProvider.setCustomParameters({
   prompt: "select_account",
 });
 
-// Function to handle Google sign-in with popup
 const signInWithGoogle = async () => {
   try {
-    console.log("Attempting Google sign-in...");
     const result = await signInWithPopup(auth, googleAuthProvider);
-    console.log("Google sign-in successful:", result.user);
-    return result.user; // Return the user object for further use
+    return result.user;
   } catch (error) {
     console.error("Google sign-in error:", error);
     throw error;

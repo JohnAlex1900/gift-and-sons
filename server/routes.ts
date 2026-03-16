@@ -192,8 +192,12 @@ export async function registerRoutes(app: Express) {
           return res.status(400).json({ error: "Missing required fields" });
         }
 
-        // Verify that the request is from the admin
-        if (adminEmail !== process.env.VITE_ADMIN_EMAIL) {
+        // Verify that the request is from the admin.
+        // Prefer ADMIN_EMAIL on the server; keep VITE_ADMIN_EMAIL as fallback.
+        const expectedAdminEmail =
+          process.env.ADMIN_EMAIL || process.env.VITE_ADMIN_EMAIL;
+
+        if (!expectedAdminEmail || adminEmail !== expectedAdminEmail) {
           return res.status(403).json({ error: "Unauthorized" });
         }
 

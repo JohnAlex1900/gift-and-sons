@@ -1,21 +1,8 @@
+import "./env";
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import cors from "cors";
-import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
-
-// Get __dirname equivalent in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Load environment variables
-const envPath =
-  process.env.NODE_ENV === "production"
-    ? path.resolve(__dirname, "../server/.env") // Adjust if needed
-    : path.resolve(__dirname, "./.env"); // For development
-
-dotenv.config({ path: envPath });
 
 const app = express();
 const PORT = process.env.PORT || 5000;

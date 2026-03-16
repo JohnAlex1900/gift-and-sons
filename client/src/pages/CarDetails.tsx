@@ -12,7 +12,7 @@ import { useState, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import React from "react";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 async function markReviewsAsViewed({
   propertyId,
@@ -22,7 +22,7 @@ async function markReviewsAsViewed({
   carId?: string;
 }) {
   try {
-    const response = await fetch("/api/reviews/mark_viewed", {
+    const response = await fetch(`${API_BASE_URL}/api/reviews/mark_viewed`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

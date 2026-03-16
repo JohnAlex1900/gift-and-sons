@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import themePlugin from "@replit/vite-plugin-shadcn-theme-json";
+import fs from "fs";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import sitemap from "vite-plugin-sitemap";
@@ -11,7 +12,18 @@ export default defineConfig(({ mode }) => {
   // Load environment variables
   const env = loadEnv(mode, process.cwd(), "VITE");
 
-  const plugins = [react(), runtimeErrorOverlay(), themePlugin()];
+  const plugins = [
+    react(),
+    runtimeErrorOverlay(),
+    themePlugin(),
+    {
+      name: "ensure-dist-dir",
+      apply: "build",
+      buildStart() {
+        fs.mkdirSync(path.resolve(__dirname, "dist"), { recursive: true });
+      },
+    },
+  ];
 
   plugins.push(
     sitemap({

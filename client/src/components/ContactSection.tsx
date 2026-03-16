@@ -24,6 +24,8 @@ const contactSchema = z.object({
 
 type ContactFormData = z.infer<typeof contactSchema>;
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+
 export function ContactSection() {
   const { toast } = useToast();
   const form = useForm<ContactFormData>({
@@ -37,7 +39,7 @@ export function ContactSection() {
 
   async function onSubmit(data: ContactFormData) {
     try {
-      const response = await fetch("/api/contact", {
+      const response = await fetch(`${API_BASE_URL}/api/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

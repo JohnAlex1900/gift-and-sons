@@ -135,6 +135,10 @@ Install dependencies
 
 npm install
 
+Create local environment files
+
+Copy client/.env.example to client/.env and server/.env.example to server/.env, then fill in the Firebase values.
+
 Run the development server
 
 npm run dev
@@ -148,6 +152,30 @@ http://localhost:3000
 # Deployment
 
 The project is deployed using **Vercel**, providing reliable hosting, global CDN distribution, and automated deployment from the repository.
+
+## Environment Variables
+
+Set these in your local env files and in Vercel project settings.
+
+Client variables
+VITE_API_BASE_URL
+VITE_FIREBASE_API_KEY
+VITE_FIREBASE_PROJECT_ID
+VITE_FIREBASE_APP_ID
+VITE_FIREBASE_AUTH_DOMAIN (optional, defaults to `<project-id>.firebaseapp.com`)
+VITE_FIREBASE_STORAGE_BUCKET (optional, defaults to `<project-id>.appspot.com`)
+VITE_ADMIN_EMAIL
+
+Server variables
+FIREBASE_SERVICE_ACCOUNT_JSON
+ADMIN_EMAIL (recommended for admin reply validation)
+
+Alternatively, instead of FIREBASE_SERVICE_ACCOUNT_JSON, you can set:
+FIREBASE_PROJECT_ID
+FIREBASE_CLIENT_EMAIL
+FIREBASE_PRIVATE_KEY
+
+Important: because the Firebase client key and the admin service-account private key were previously committed, they should be rotated in Firebase/Google Cloud after this change is deployed.
 
 Deployment platform
 Vercel
