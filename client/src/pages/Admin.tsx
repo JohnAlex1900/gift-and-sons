@@ -14,7 +14,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Property, Car } from "@/types";
 import { apiRequest, getQueryFn } from "@/lib/queryClient";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "@/lib/firebase";
 import { useLocation } from "wouter";
@@ -63,6 +63,8 @@ export default function Admin() {
   const [bathrooms, setBathrooms] = useState("");
   const [area, setArea] = useState("");
   const [propertyFeatured, setPropertyFeatured] = useState(false);
+  const [propertyStatus, setPropertyStatus] = useState("available");
+  const [propertyPriorityOrder, setPropertyPriorityOrder] = useState("");
   const [propertyYoutubeLink, setPropertyYoutubeLink] = useState("");
   const [isPropertyFormOpen, setIsPropertyFormOpen] = useState(false);
 
@@ -97,6 +99,12 @@ export default function Admin() {
       setSelectedBedrooms(selectedProperty.bedrooms || []);
       setPropertyImageUrls(selectedProperty.imageUrls || []);
       setPropertyFeatured(selectedProperty.featured || false);
+      setPropertyStatus(selectedProperty.status || "available");
+      setPropertyPriorityOrder(
+        typeof selectedProperty.priorityOrder === "number"
+          ? selectedProperty.priorityOrder.toString()
+          : ""
+      );
       setPropertyYoutubeLink(selectedProperty.youtubeLink || "");
     } else if (selectedCar) {
       setCarTitle(selectedCar.title || "");
@@ -131,6 +139,8 @@ export default function Admin() {
     setPropertyImageUrls([]);
     setCarImageUrls([]);
     setPropertyFeatured(false);
+    setPropertyStatus("available");
+    setPropertyPriorityOrder("");
     setCarFeatured(false);
     setPropertyYoutubeLink("");
     setCarYoutubeLink("");
@@ -189,6 +199,11 @@ export default function Admin() {
       return response.data;
     },
   });
+
+  const orderedProperties = useMemo(() => {
+    if (!properties) return [];
+    return [...properties];
+  }, [properties]);
 
   // Mutations (auth handled in apiRequest)
   const createPropertyMutation = useMutation({
@@ -249,6 +264,26 @@ export default function Admin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/properties"] });
       toast({ title: "Property deleted successfully" });
+    },
+  });
+
+  const reprioritizePropertyMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Property> }) => {
+      await apiRequest("PATCH", `${API_BASE_URL}/api/properties/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/properties"] });
+    },
+  });
+
+  const updatePropertyStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      await apiRequest("PATCH", `${API_BASE_URL}/api/properties/${id}`, {
+        status,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/properties"] });
     },
   });
 
@@ -316,6 +351,90 @@ export default function Admin() {
     );
   };
 
+  const handleMoveProperty = async (
+    property: Property,
+    direction: "up" | "down"
+  ) => {
+    const currentIndex = orderedProperties.findIndex((p) => p.id === property.id);
+    if (currentIndex === -1) return;
+
+    const currentStatus = (property.status || "available").toLowerCase();
+    const targetIndex =
+      direction === "up"
+        ? [...Array(currentIndex).keys()]
+            .reverse()
+            .find(
+              (index) =>
+                (orderedProperties[index].status || "available").toLowerCase() ===
+                currentStatus
+            )
+        : [...Array(orderedProperties.length - currentIndex - 1).keys()]
+            .map((i) => i + currentIndex + 1)
+            .find(
+              (index) =>
+                (orderedProperties[index].status || "available").toLowerCase() ===
+                currentStatus
+            );
+
+    if (targetIndex === undefined) return;
+
+    const targetProperty = orderedProperties[targetIndex];
+    const sourcePriority =
+      typeof property.priorityOrder === "number" ? property.priorityOrder : currentIndex;
+    const targetPriority =
+      typeof targetProperty.priorityOrder === "number"
+        ? targetProperty.priorityOrder
+        : targetIndex;
+
+    try {
+      await Promise.all([
+        reprioritizePropertyMutation.mutateAsync({
+          id: property.id,
+          data: { priorityOrder: targetPriority },
+        }),
+        reprioritizePropertyMutation.mutateAsync({
+          id: targetProperty.id,
+          data: { priorityOrder: sourcePriority },
+        }),
+      ]);
+
+      toast({ title: "Property order updated" });
+    } catch (error) {
+      toast({
+        title: "Unable to move property",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleTogglePropertyStatus = async (property: Property) => {
+    const currentStatus = (property.status || "available").toLowerCase();
+    const nextStatus = currentStatus === "sold" ? "available" : "sold";
+
+    try {
+      await updatePropertyStatusMutation.mutateAsync({
+        id: property.id,
+        status: nextStatus,
+      });
+
+      toast({
+        title:
+          nextStatus === "sold"
+            ? "Property marked as sold"
+            : "Property marked as available",
+      });
+    } catch (error) {
+      toast({
+        title: "Unable to update status",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <>
       <Helmet>
@@ -367,6 +486,11 @@ export default function Admin() {
                         area: Number(area),
                         imageUrls: propertyImageUrls,
                         featured: propertyFeatured,
+                        status: propertyStatus,
+                        priorityOrder:
+                          propertyPriorityOrder.trim() === ""
+                            ? undefined
+                            : Number(propertyPriorityOrder),
                         youtubeLink: propertyYoutubeLink,
                       };
 
@@ -411,6 +535,19 @@ export default function Admin() {
                         <SelectItem value="sale">For Sale</SelectItem>
                         <SelectItem value="rent">For Rent</SelectItem>
                         <SelectItem value="lease">For Lease</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      name="status"
+                      value={propertyStatus}
+                      onValueChange={setPropertyStatus}
+                    >
+                      <SelectTrigger className="bg-foreground">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="available">Available</SelectItem>
+                        <SelectItem value="sold">Sold</SelectItem>
                       </SelectContent>
                     </Select>
                     <Select
@@ -477,6 +614,14 @@ export default function Admin() {
                       />
                       <Input
                         className="bg-foreground"
+                        name="priorityOrder"
+                        type="number"
+                        placeholder="Priority order (lower appears first)"
+                        value={propertyPriorityOrder}
+                        onChange={(e) => setPropertyPriorityOrder(e.target.value)}
+                      />
+                      <Input
+                        className="bg-foreground"
                         name="youtubeLink"
                         type="text"
                         placeholder="YouTube Video Link (optional)"
@@ -500,7 +645,8 @@ export default function Admin() {
                         type="checkbox"
                         name="featured"
                         id="featured"
-                        defaultChecked={!!selectedProperty?.featured}
+                        checked={propertyFeatured}
+                        onChange={(e) => setPropertyFeatured(e.target.checked)}
                       />
                       <label htmlFor="featured">Featured Property</label>
                     </div>
@@ -662,7 +808,8 @@ export default function Admin() {
                         type="checkbox"
                         name="featured"
                         id="featured"
-                        defaultChecked={!!selectedCar?.featured}
+                        checked={carFeatured}
+                        onChange={(e) => setCarFeatured(e.target.checked)}
                       />
                       <label htmlFor="featured">Featured Car</label>
                     </div>
@@ -705,7 +852,7 @@ export default function Admin() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {properties?.map((property) => (
+                  {orderedProperties.map((property) => (
                     <div
                       key={property.id}
                       className="flex items-center justify-between p-4 bg-muted rounded-lg"
@@ -719,8 +866,49 @@ export default function Admin() {
                             : "N/A"}{" "}
                           - {property.location}
                         </p>
+                        <p className="text-xs text-muted-foreground">
+                          Status: {(property.status || "available").toUpperCase()} | Priority: {typeof property.priorityOrder === "number" ? property.priorityOrder : "auto"}
+                        </p>
                       </div>
                       <div className="flex gap-2">
+                        <Button
+                          className="bg-foreground hover:bg-background hover:text-foreground"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleMoveProperty(property, "up")}
+                          disabled={
+                            reprioritizePropertyMutation.isPending ||
+                            updatePropertyStatusMutation.isPending
+                          }
+                        >
+                          Up
+                        </Button>
+                        <Button
+                          className="bg-foreground hover:bg-background hover:text-foreground"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleMoveProperty(property, "down")}
+                          disabled={
+                            reprioritizePropertyMutation.isPending ||
+                            updatePropertyStatusMutation.isPending
+                          }
+                        >
+                          Down
+                        </Button>
+                        <Button
+                          className="bg-foreground hover:bg-background hover:text-foreground"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleTogglePropertyStatus(property)}
+                          disabled={
+                            reprioritizePropertyMutation.isPending ||
+                            updatePropertyStatusMutation.isPending
+                          }
+                        >
+                          {(property.status || "available").toLowerCase() === "sold"
+                            ? "Mark Available"
+                            : "Mark Sold"}
+                        </Button>
                         <Button
                           className="bg-foreground hover:bg-background hover:text-foreground"
                           variant="outline"
