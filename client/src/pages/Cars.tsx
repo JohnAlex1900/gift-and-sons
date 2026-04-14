@@ -6,6 +6,7 @@ import { CarCard } from "@/components/CarCard";
 import { CarSearchFilters } from "@/components/CarSearchFilters";
 import { Helmet } from "react-helmet-async";
 import React from "react";
+import { apiUrl } from "@/api";
 
 export default function Cars() {
   const [filters, setFilters] = useState<{
@@ -14,16 +15,10 @@ export default function Cars() {
     [key: string]: any;
   }>({});
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-  console.log(API_BASE_URL);
-
   const { data: cars, isLoading } = useQuery<Car[]>({
     queryKey: ["/api/cars", filters],
     queryFn: async () => {
-      const response = await axios.get<Car[]>(`${API_BASE_URL}/api/cars`, {
-        withCredentials: true, // Ensure cookies/session data are included
-      });
+      const response = await axios.get<Car[]>(apiUrl("/api/cars"));
       return response.data;
     },
   });

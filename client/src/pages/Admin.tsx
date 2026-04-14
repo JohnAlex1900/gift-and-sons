@@ -29,8 +29,7 @@ import {
 import UploadButton from "@/components/UploadButton";
 import axios from "axios";
 import { Helmet } from "react-helmet-async";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { apiUrl } from "@/api";
 
 export default function Admin() {
   const [user] = useAuthState(auth);
@@ -181,10 +180,7 @@ export default function Admin() {
     queryKey: ["/api/properties"],
     queryFn: async () => {
       const response = await axios.get<Property[]>(
-        `${API_BASE_URL}/api/properties`,
-        {
-          withCredentials: true, // Ensure cookies/session data are included
-        }
+        apiUrl("/api/properties")
       );
       return response.data;
     },
@@ -193,9 +189,7 @@ export default function Admin() {
   const { data: cars } = useQuery<Car[]>({
     queryKey: ["/api/cars"],
     queryFn: async () => {
-      const response = await axios.get<Car[]>(`${API_BASE_URL}/api/cars`, {
-        withCredentials: true, // Ensure cookies/session data are included
-      });
+      const response = await axios.get<Car[]>(apiUrl("/api/cars"));
       return response.data;
     },
   });
@@ -210,7 +204,7 @@ export default function Admin() {
     mutationFn: async (property: Partial<Property>) => {
       setIsCreating(true);
       try {
-        await apiRequest("POST", `${API_BASE_URL}/api/properties`, property);
+        await apiRequest("POST", apiUrl("/api/properties"), property);
       } catch (error) {
         let errorMessage = "An unknown error occurred";
         if (error instanceof Error) {
@@ -239,7 +233,7 @@ export default function Admin() {
     }) => {
       setIsUpdating(true);
       try {
-        await apiRequest("PATCH", `${API_BASE_URL}/api/properties/${id}`, data);
+        await apiRequest("PATCH", apiUrl(`/api/properties/${id}`), data);
       } finally {
         setIsUpdating(false);
       }
@@ -256,7 +250,7 @@ export default function Admin() {
     mutationFn: async (id: string) => {
       setIsDeleting(id);
       try {
-        await apiRequest("DELETE", `${API_BASE_URL}/api/properties/${id}`);
+        await apiRequest("DELETE", apiUrl(`/api/properties/${id}`));
       } finally {
         setIsDeleting(null);
       }
@@ -269,7 +263,7 @@ export default function Admin() {
 
   const reprioritizePropertyMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Property> }) => {
-      await apiRequest("PATCH", `${API_BASE_URL}/api/properties/${id}`, data);
+      await apiRequest("PATCH", apiUrl(`/api/properties/${id}`), data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/properties"] });
@@ -278,7 +272,7 @@ export default function Admin() {
 
   const updatePropertyStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      await apiRequest("PATCH", `${API_BASE_URL}/api/properties/${id}`, {
+      await apiRequest("PATCH", apiUrl(`/api/properties/${id}`), {
         status,
       });
     },
@@ -292,7 +286,7 @@ export default function Admin() {
     mutationFn: async (car: Partial<Car>) => {
       setIsCreating(true);
       try {
-        await apiRequest("POST", `${API_BASE_URL}/api/cars`, car);
+        await apiRequest("POST", apiUrl("/api/cars"), car);
       } catch (error) {
         let errorMessage = "An unknown error occurred";
         if (error instanceof Error) {
@@ -315,7 +309,7 @@ export default function Admin() {
     mutationFn: async ({ id, data }: { id: string; data: Partial<Car> }) => {
       setIsUpdating(true);
       try {
-        await apiRequest("PATCH", `${API_BASE_URL}/api/cars/${id}`, data);
+        await apiRequest("PATCH", apiUrl(`/api/cars/${id}`), data);
       } finally {
         setIsUpdating(false);
       }
@@ -332,7 +326,7 @@ export default function Admin() {
     mutationFn: async (id: string) => {
       setIsDeleting(id);
       try {
-        await apiRequest("DELETE", `${API_BASE_URL}/api/cars/${id}`);
+        await apiRequest("DELETE", apiUrl(`/api/cars/${id}`));
       } finally {
         setIsDeleting(null);
       }

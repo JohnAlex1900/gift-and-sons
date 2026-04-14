@@ -10,8 +10,7 @@ import { auth } from "@/lib/firebase";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { apiUrl } from "@/api";
 
 async function markReviewsAsViewed({
   propertyId,
@@ -21,7 +20,7 @@ async function markReviewsAsViewed({
   carId?: string;
 }) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/reviews/mark_viewed`, {
+    const response = await fetch(apiUrl("/api/reviews/mark_viewed"), {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -114,7 +113,7 @@ export default function PropertyDetails() {
     }) => {
       if (!reply.trim()) throw new Error("Reply cannot be empty");
 
-      return apiRequest("POST", `${API_BASE_URL}/api/reviews/reply`, {
+      return apiRequest("POST", apiUrl("/api/reviews/reply"), {
         reviewId,
         replyMessage: reply, // Change from `replyMessage: reply`
         adminEmail: import.meta.env.VITE_ADMIN_EMAIL, // Ensure admin verification
@@ -193,7 +192,7 @@ export default function PropertyDetails() {
     queryKey: [`/api/properties/${id}`],
     queryFn: async () => {
       if (!id) return null;
-      const response = await fetch(`${API_BASE_URL}/api/properties/${id}`);
+      const response = await fetch(apiUrl(`/api/properties/${id}`));
       if (!response.ok) {
         throw new Error("Failed to fetch property details");
       }
@@ -210,7 +209,7 @@ export default function PropertyDetails() {
       const token = await user?.getIdToken();
 
       const response = await fetch(
-        `${API_BASE_URL}/api/reviews/property/${id}`,
+        apiUrl(`/api/reviews/property/${id}`),
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -257,7 +256,7 @@ export default function PropertyDetails() {
 
       const response = await apiRequest(
         "POST",
-        `${API_BASE_URL}/api/reviews`,
+        apiUrl("/api/reviews"),
         review
       );
       return response; // Ensure response contains the new review

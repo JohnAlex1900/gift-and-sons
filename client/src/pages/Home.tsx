@@ -5,10 +5,7 @@ import { Property } from "@/types";
 import axios from "axios";
 import { Helmet } from "react-helmet-async";
 import React from "react";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-console.log(API_BASE_URL);
+import { apiUrl } from "@/api";
 
 export default function Home() {
   // Fetch featured properties
@@ -21,7 +18,7 @@ export default function Home() {
     queryKey: ["/api/properties/featured"],
     queryFn: async () => {
       const response = await axios.get<Property[]>(
-        `${API_BASE_URL}/api/properties/featured`
+        apiUrl("/api/properties/featured")
       );
       return response.data;
     },

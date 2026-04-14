@@ -10,6 +10,43 @@ type FirebaseServiceAccount = {
   privateKey: string;
 };
 
+const normalizePrivateKey = (privateKey: string) => {
+  const trimmed = privateKey.trim();
+  const unwrapped =
+    trimmed.startsWith('"') && trimmed.endsWith('"')
+      ? trimmed.slice(1, -1)
+      : trimmed;
+
+  return unwrapped.replace(/\\n/g, "\n");
+};
+
+const parseServiceAccountJson = (rawValue: string) => {
+  const candidateValues = [rawValue];
+
+  // Allow base64-encoded JSON for easier deployment secret handling.
+  try {
+    candidateValues.push(Buffer.from(rawValue, "base64").toString("utf8"));
+  } catch {
+    // Ignore invalid base64 candidate.
+  }
+
+  for (const candidate of candidateValues) {
+    try {
+      return JSON.parse(candidate) as {
+        project_id?: string;
+        client_email?: string;
+        private_key?: string;
+      };
+    } catch {
+      // Try next candidate.
+    }
+  }
+
+  throw new Error(
+    "FIREBASE_SERVICE_ACCOUNT_JSON is not valid JSON (plain or base64-encoded)"
+  );
+};
+
 const getRequiredEnv = (key: string) => {
   const value = process.env[key];
 
@@ -24,11 +61,7 @@ const getServiceAccountFromEnv = (): FirebaseServiceAccount => {
   const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 
   if (rawServiceAccount) {
-    const parsedAccount = JSON.parse(rawServiceAccount) as {
-      project_id?: string;
-      client_email?: string;
-      private_key?: string;
-    };
+    const parsedAccount = parseServiceAccountJson(rawServiceAccount);
 
     if (
       !parsedAccount.project_id ||
@@ -43,14 +76,14 @@ const getServiceAccountFromEnv = (): FirebaseServiceAccount => {
     return {
       projectId: parsedAccount.project_id,
       clientEmail: parsedAccount.client_email,
-      privateKey: parsedAccount.private_key.replace(/\\n/g, "\n"),
+      privateKey: normalizePrivateKey(parsedAccount.private_key),
     };
   }
 
   return {
     projectId: getRequiredEnv("FIREBASE_PROJECT_ID"),
     clientEmail: getRequiredEnv("FIREBASE_CLIENT_EMAIL"),
-    privateKey: getRequiredEnv("FIREBASE_PRIVATE_KEY").replace(/\\n/g, "\n"),
+    privateKey: normalizePrivateKey(getRequiredEnv("FIREBASE_PRIVATE_KEY")),
   };
 };
 

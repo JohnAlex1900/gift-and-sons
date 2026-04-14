@@ -6,6 +6,7 @@ import { useState } from "react";
 import axios from "axios";
 import { Helmet } from "react-helmet-async";
 import React from "react";
+import { apiUrl } from "@/api";
 
 export default function Properties() {
   const [filters, setFilters] = useState<{
@@ -14,19 +15,10 @@ export default function Properties() {
     [key: string]: any;
   }>({});
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-  console.log(API_BASE_URL);
-
   const { data: properties, isLoading } = useQuery<Property[]>({
     queryKey: ["/api/properties", filters],
     queryFn: async () => {
-      const response = await axios.get<Property[]>(
-        `${API_BASE_URL}/api/properties`,
-        {
-          withCredentials: true, // Ensure cookies/session data are included
-        }
-      );
+      const response = await axios.get<Property[]>(apiUrl("/api/properties"));
       return response.data;
     },
   });

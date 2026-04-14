@@ -169,11 +169,19 @@ VITE_ADMIN_EMAIL
 Server variables
 FIREBASE_SERVICE_ACCOUNT_JSON
 ADMIN_EMAIL (recommended for admin reply validation)
+FRONTEND_ORIGINS (optional, comma-separated CORS allowlist)
 
 Alternatively, instead of FIREBASE_SERVICE_ACCOUNT_JSON, you can set:
 FIREBASE_PROJECT_ID
 FIREBASE_CLIENT_EMAIL
 FIREBASE_PRIVATE_KEY
+
+If FIREBASE_SERVICE_ACCOUNT_JSON is easier to manage as a secret, you can provide it as either plain JSON or base64-encoded JSON.
+
+Troubleshooting production API data not loading
+- Verify VITE_API_BASE_URL is set in the frontend deployment environment.
+- Verify backend deployment has valid Firebase Admin credentials (one of the server variable options above).
+- If backend endpoints return HTTP 500, check backend logs first for Firebase key format or permission errors.
 
 Important: because the Firebase client key and the admin service-account private key were previously committed, they should be rotated in Firebase/Google Cloud after this change is deployed.
 

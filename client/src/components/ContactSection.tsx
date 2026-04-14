@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import React from "react";
+import { apiUrl } from "@/api";
 
 const contactSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -23,8 +24,6 @@ const contactSchema = z.object({
 });
 
 type ContactFormData = z.infer<typeof contactSchema>;
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 export function ContactSection() {
   const { toast } = useToast();
@@ -39,7 +38,7 @@ export function ContactSection() {
 
   async function onSubmit(data: ContactFormData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/contact`, {
+      const response = await fetch(apiUrl("/api/contact"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

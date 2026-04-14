@@ -8,6 +8,7 @@ import { PiSignOutBold } from "react-icons/pi";
 import { HiOutlineMenu, HiX } from "react-icons/hi"; // Menu icons
 import image from "../../assets/gift&sons.png";
 import React from "react";
+import { apiUrl } from "@/api";
 
 export function Navbar() {
   const [user] = useAuthState(auth);
@@ -24,9 +25,7 @@ export function Navbar() {
 
       if (isAdminUser) {
         try {
-          const res = await fetch(
-            `${import.meta.env.VITE_API_BASE_URL}/api/reviews/unviewed_count`
-          );
+          const res = await fetch(apiUrl("/api/reviews/unviewed_count"));
           const data = await res.json();
           setUnviewedCount(data.count || 0);
         } catch (err) {
@@ -47,9 +46,7 @@ export function Navbar() {
   useEffect(() => {
     const fetchCount = async () => {
       try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/reviews/unviewed_count`
-        );
+        const res = await fetch(apiUrl("/api/reviews/unviewed_count"));
         const data = await res.json();
         setUnviewedCount(data.count || 0);
       } catch (err) {

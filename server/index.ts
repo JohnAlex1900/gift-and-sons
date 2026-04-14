@@ -7,6 +7,38 @@ import cors from "cors";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const getAllowedOrigins = () => {
+  const staticOrigins = [
+    "http://localhost:5000",
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://giftandsonsinternational.com",
+    "https://www.giftandsonsinternational.com",
+  ];
+
+  const configuredOrigins = (process.env.FRONTEND_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  return new Set([...staticOrigins, ...configuredOrigins]);
+};
+
+const allowedOrigins = getAllowedOrigins();
+
+const isAllowedOrigin = (origin: string) => {
+  if (allowedOrigins.has(origin)) {
+    return true;
+  }
+
+  // Allow Vercel preview and production project domains.
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) {
+    return true;
+  }
+
+  return false;
+};
+
 // Log incoming requests
 app.use((req, res, next) => {
   console.log("Incoming request from origin:", req.headers.origin); // Log the request origin
@@ -16,13 +48,14 @@ app.use((req, res, next) => {
 // CORS configuration
 app.use(
   cors({
-    origin: [
-      "http://localhost:5000",
-      "http://localhost:5173",
-      "http://localhost:3000",
-      "https://giftandsonsinternational.com", // Allow requests from your production frontend
-      "https://www.giftandsonsinternational.com", // Allow requests from your production frontend (with www)
-    ],
+    origin: (origin, callback) => {
+      if (!origin || isAllowedOrigin(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: [
       "Content-Type",

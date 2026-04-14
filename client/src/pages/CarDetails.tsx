@@ -11,8 +11,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import React from "react";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+import { apiUrl } from "@/api";
 
 async function markReviewsAsViewed({
   propertyId,
@@ -22,7 +21,7 @@ async function markReviewsAsViewed({
   carId?: string;
 }) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/reviews/mark_viewed`, {
+    const response = await fetch(apiUrl("/api/reviews/mark_viewed"), {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -114,7 +113,7 @@ export default function CarDetails() {
     }) => {
       if (!reply.trim()) throw new Error("Reply cannot be empty");
 
-      return apiRequest("POST", `${API_BASE_URL}/api/reviews/reply`, {
+      return apiRequest("POST", apiUrl("/api/reviews/reply"), {
         reviewId,
         replyMessage: reply, // Change from `replyMessage: reply`
         adminEmail: import.meta.env.VITE_ADMIN_EMAIL, // Ensure admin verification
@@ -193,7 +192,7 @@ export default function CarDetails() {
     queryKey: [`/api/cars/${id}`],
     queryFn: async () => {
       if (!id) return null;
-      const response = await fetch(`${API_BASE_URL}/api/cars/${id}`);
+      const response = await fetch(apiUrl(`/api/cars/${id}`));
       if (!response.ok) {
         throw new Error("Failed to fetch Car details");
       }
@@ -210,7 +209,7 @@ export default function CarDetails() {
       const token = await user?.getIdToken();
 
       const response = await fetch(
-        `${API_BASE_URL}/api/reviews/property/${id}`,
+        apiUrl(`/api/reviews/property/${id}`),
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -257,7 +256,7 @@ export default function CarDetails() {
 
       const response = await apiRequest(
         "POST",
-        `${API_BASE_URL}/api/reviews`,
+        apiUrl("/api/reviews"),
         review
       );
       return response; // Ensure response contains the new review

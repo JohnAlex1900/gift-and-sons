@@ -6,8 +6,7 @@ import { Link } from "wouter";
 import { Star } from "lucide-react";
 import { Review, Item } from "@/types";
 import { Helmet } from "react-helmet-async";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { apiUrl } from "@/api";
 
 function ReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -17,7 +16,7 @@ function ReviewsPage() {
   useEffect(() => {
     const fetchReviewsAndItems = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/reviews`);
+        const res = await fetch(apiUrl("/api/reviews"));
         if (!res.ok) throw new Error("Failed to fetch reviews");
         const data = await res.json();
 
@@ -46,12 +45,12 @@ function ReviewsPage() {
             try {
               if (review.propertyId) {
                 const propertyRes = await axios.get(
-                  `${API_BASE_URL}/api/properties/${review.propertyId}`
+                  apiUrl(`/api/properties/${review.propertyId}`)
                 );
                 itemData[review.propertyId] = propertyRes.data;
               } else if (review.carId) {
                 const carRes = await axios.get(
-                  `${API_BASE_URL}/api/cars/${review.carId}`
+                  apiUrl(`/api/cars/${review.carId}`)
                 );
                 itemData[review.carId] = carRes.data;
               }

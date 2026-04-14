@@ -19,6 +19,7 @@ import CarDetails from "./pages/CarDetails";
 import Cars from "./pages/Cars";
 import React from "react";
 import ReviewsPage from "./pages/Reviews";
+import { apiUrl } from "@/api";
 
 function RedirectToHome() {
   const [, navigate] = useLocation();
@@ -81,9 +82,7 @@ export default function App() {
 
       if (user?.email === adminEmail && !toastShown.current) {
         try {
-          const response = await fetch(
-            `${import.meta.env.VITE_API_BASE_URL}/api/reviews/unviewed_count`
-          );
+          const response = await fetch(apiUrl("/api/reviews/unviewed_count"));
           const data = await response.json();
 
           if (data.count > 0) {
