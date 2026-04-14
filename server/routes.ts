@@ -1,5 +1,4 @@
 import type { Express, Response, NextFunction } from "express";
-import { createServer } from "http";
 import storage from "./storage";
 import { adminAuth } from "./firebase-admin";
 import { createRouteHandler } from "uploadthing/express";
@@ -8,8 +7,6 @@ import nodemailer from "nodemailer";
 import { AuthenticatedRequest } from "./types/express";
 
 export async function registerRoutes(app: Express) {
-  const httpServer = createServer(app);
-
   // Auth middleware
   const requireAuth = async (
     req: AuthenticatedRequest,
@@ -28,15 +25,19 @@ export async function registerRoutes(app: Express) {
     }
   };
 
-  app.use(
-    "/api/uploadthing",
-    createRouteHandler({
-      router: uploadRouter,
-      config: {}, // Optional configuration
-    })
-  );
+  try {
+    app.use(
+      "/api/uploadthing",
+      createRouteHandler({
+        router: uploadRouter,
+        config: {}, // Optional configuration
+      })
+    );
 
-  console.log("✅ UploadThing API registered at /api/uploadthing");
+    console.log("✅ UploadThing API registered at /api/uploadthing");
+  } catch (error) {
+    console.error("❌ UploadThing setup skipped:", error);
+  }
 
   // Properties endpoints
   app.get(
@@ -374,6 +375,4 @@ export async function registerRoutes(app: Express) {
       res.status(500).json({ error: "Failed to send email" });
     }
   });
-
-  return httpServer;
 }

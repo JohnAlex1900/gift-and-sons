@@ -149,6 +149,11 @@ export const getServerApp = async () => {
       configureErrorHandler(app);
       return app;
     })();
+
+    appPromise.catch(() => {
+      // Allow a later invocation to retry app initialization.
+      appPromise = null;
+    });
   }
 
   return appPromise;
