@@ -30,7 +30,7 @@ async function markReviewsAsViewed({
     });
 
     if (!response.ok) {
-      throw new Error("Failed to mark reviews as viewed");
+      throw new Error("Failed to mark reviews as viewed, oh man");
     }
 
     const data = await response.json();
