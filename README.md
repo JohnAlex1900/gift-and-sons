@@ -188,6 +188,31 @@ Important: because the Firebase client key and the admin service-account private
 Deployment platform
 Vercel
 
+## Vercel Serverless Setup (Frontend + Backend Together)
+
+This repository now supports running all backend routes as Vercel serverless functions via `api/[...path].ts`.
+
+1. Import this repository into Vercel.
+2. Set project root to repository root (do not set to `client`).
+3. Set build command to `npm run build`.
+4. Set output directory to `client/dist`.
+5. Add frontend environment variables in Vercel:
+VITE_API_BASE_URL (optional; if omitted, code falls back to Render URL)
+VITE_FIREBASE_API_KEY
+VITE_FIREBASE_PROJECT_ID
+VITE_FIREBASE_APP_ID
+VITE_FIREBASE_AUTH_DOMAIN
+VITE_FIREBASE_STORAGE_BUCKET
+VITE_ADMIN_EMAIL
+6. Add backend environment variables in Vercel:
+FIREBASE_SERVICE_ACCOUNT_JSON (plain JSON or base64-encoded JSON), or FIREBASE_PROJECT_ID/FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY
+ADMIN_EMAIL
+FRONTEND_ORIGINS (recommended for explicit CORS allowlist)
+7. Deploy and verify these endpoints:
+`/api/properties`
+`/api/cars`
+`/api/reviews`
+
 ---
 
 # Author

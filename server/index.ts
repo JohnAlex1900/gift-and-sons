@@ -1,127 +1,17 @@
-import "./env";
+import { getServerApp } from "./app";
 
-import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import cors from "cors";
-
-const app = express();
 const PORT = process.env.PORT || 5000;
 
-const getAllowedOrigins = () => {
-  const staticOrigins = [
-    "http://localhost:5000",
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "https://giftandsonsinternational.com",
-    "https://www.giftandsonsinternational.com",
-  ];
-
-  const configuredOrigins = (process.env.FRONTEND_ORIGINS || "")
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean);
-
-  return new Set([...staticOrigins, ...configuredOrigins]);
-};
-
-const allowedOrigins = getAllowedOrigins();
-
-const isAllowedOrigin = (origin: string) => {
-  if (allowedOrigins.has(origin)) {
-    return true;
-  }
-
-  // Allow Vercel preview and production project domains.
-  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) {
-    return true;
-  }
-
-  return false;
-};
-
-// Log incoming requests
-app.use((req, res, next) => {
-  console.log("Incoming request from origin:", req.headers.origin); // Log the request origin
-  next();
-});
-
-// CORS configuration
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || isAllowedOrigin(origin)) {
-        callback(null, true);
-        return;
-      }
-
-      callback(new Error(`CORS blocked for origin: ${origin}`));
-    },
-    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "x-uploadthing-version",
-      "x-uploadthing-package",
-      "x-uploadthing-filename",
-    ],
-    credentials: true, // Allow cookies/session data to be sent
-  })
-);
-
-// Middleware for parsing JSON and URL-encoded data
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-// Request logging middleware
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-      console.log(logLine); // Log the request details
-    }
-  });
-
-  next();
-});
-
-// Register API routes
-(async () => {
+const start = async () => {
   try {
-    await registerRoutes(app);
-  } catch (err) {
-    console.error("❌ Error during server setup:", err);
+    const app = await getServerApp();
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
-})();
+};
 
-// Global error handler
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
-  console.error("❌ Error:", message);
-  res.status(status).json({ message });
-});
-
-// ✅ Start the server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
-
-export default app;
+start();
