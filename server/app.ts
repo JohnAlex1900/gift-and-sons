@@ -4,6 +4,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { registerRoutes } from "./routes";
 
+const normalizeOrigin = (origin: string) => origin.trim().replace(/\/$/, "").toLowerCase();
+
 const getAllowedOrigins = () => {
   const staticOrigins = [
     "http://localhost:5000",
@@ -18,17 +20,39 @@ const getAllowedOrigins = () => {
     .map((origin) => origin.trim())
     .filter(Boolean);
 
-  return new Set([...staticOrigins, ...configuredOrigins]);
+  const vercelOrigins = [
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "",
+    process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : "",
+  ].filter(Boolean);
+
+  const allOrigins = [...staticOrigins, ...configuredOrigins, ...vercelOrigins]
+    .map(normalizeOrigin);
+
+  return new Set(allOrigins);
 };
 
 const allowedOrigins = getAllowedOrigins();
 
 const isAllowedOrigin = (origin: string) => {
-  if (allowedOrigins.has(origin)) {
+  const normalizedOrigin = normalizeOrigin(origin);
+
+  if (allowedOrigins.has(normalizedOrigin)) {
     return true;
   }
 
-  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) {
+  // Vercel preview/prod domains
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(normalizedOrigin)) {
+    return true;
+  }
+
+  // Localhost variants for local testing.
+  if (/^https?:\/\/localhost(?::\d+)?$/i.test(normalizedOrigin)) {
+    return true;
+  }
+
+  if (/^https?:\/\/127\.0\.0\.1(?::\d+)?$/i.test(normalizedOrigin)) {
     return true;
   }
 
@@ -49,7 +73,9 @@ const configureMiddleware = (app: express.Express) => {
           return;
         }
 
-        callback(new Error(`CORS blocked for origin: ${origin}`));
+        // Do not throw from CORS callback; returning false avoids turning CORS issues into 500s.
+        console.warn(`CORS blocked for origin: ${origin}`);
+        callback(null, false);
       },
       methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
       allowedHeaders: [
@@ -60,6 +86,7 @@ const configureMiddleware = (app: express.Express) => {
         "x-uploadthing-filename",
       ],
       credentials: true,
+      optionsSuccessStatus: 204,
     })
   );
 
