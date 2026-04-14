@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
-    "build": "npm --prefix client run build",
+    "build": "npm run build:server && npm --prefix client run build",
     "build:server": "npm --prefix server run build",
     "start": "NODE_ENV=production tsx server/index.ts",
     "check": "tsc",

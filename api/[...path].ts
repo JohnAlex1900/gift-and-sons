@@ -1,4 +1,4 @@
-import { getServerApp } from "../server/app";
+import { getServerApp } from "../server/dist/app.js";
 
 const setCorsHeaders = (req: any, res: any) => {
   const origin = req.headers?.origin;
