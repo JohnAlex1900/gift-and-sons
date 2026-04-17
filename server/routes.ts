@@ -8,6 +8,11 @@ import { AuthenticatedRequest } from "./types/express";
 
 export async function registerRoutes(app: Express) {
   const errorPayload = (error: unknown) => {
+    const message =
+      typeof error === "object" && error && "message" in error
+        ? (error as { message?: unknown }).message
+        : undefined;
+
     const code =
       typeof error === "object" && error && "code" in error
         ? (error as { code?: unknown }).code
@@ -16,6 +21,7 @@ export async function registerRoutes(app: Express) {
     return {
       message: "Server error",
       code: typeof code === "string" ? code : "INTERNAL",
+      detail: typeof message === "string" ? message : undefined,
     };
   };
 

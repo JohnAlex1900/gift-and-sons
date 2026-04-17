@@ -5,12 +5,16 @@ import { uploadRouter } from "./uploadthing.js";
 import nodemailer from "nodemailer";
 export async function registerRoutes(app) {
     const errorPayload = (error) => {
+        const message = typeof error === "object" && error && "message" in error
+            ? error.message
+            : undefined;
         const code = typeof error === "object" && error && "code" in error
             ? error.code
             : undefined;
         return {
             message: "Server error",
             code: typeof code === "string" ? code : "INTERNAL",
+            detail: typeof message === "string" ? message : undefined,
         };
     };
     // Auth middleware
