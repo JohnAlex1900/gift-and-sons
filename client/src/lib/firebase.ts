@@ -2,6 +2,7 @@ import { getApp, getApps, initializeApp } from "firebase/app";
 import {
   getAuth,
   signInWithPopup,
+  signInAnonymously,
   GoogleAuthProvider,
   Auth,
 } from "firebase/auth";
@@ -62,4 +63,25 @@ const signInWithGoogle = async () => {
   }
 };
 
-export { auth, db, signInWithGoogle };
+let publicReadAuthPromise: Promise<void> | null = null;
+
+const ensurePublicReadAuth = async () => {
+  if (auth.currentUser) {
+    return;
+  }
+
+  if (!publicReadAuthPromise) {
+    publicReadAuthPromise = signInAnonymously(auth)
+      .then(() => {
+        // No-op: we only need an authenticated context for Firestore rules.
+      })
+      .catch((error) => {
+        publicReadAuthPromise = null;
+        throw error;
+      });
+  }
+
+  await publicReadAuthPromise;
+};
+
+export { auth, db, signInWithGoogle, ensurePublicReadAuth };

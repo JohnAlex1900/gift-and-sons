@@ -1,6 +1,11 @@
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, ensurePublicReadAuth } from "@/lib/firebase";
 import type { Car, Property, Review } from "@/types";
+
+const withPublicReadAuth = async <T>(task: () => Promise<T>) => {
+  await ensurePublicReadAuth();
+  return task();
+};
 
 const getPropertyStatusBucket = (status?: string) =>
   status?.toLowerCase() === "sold" ? 1 : 0;
@@ -47,15 +52,19 @@ const mapReview = (snapshot: { id: string; data: () => unknown }) => ({
 }) as Review;
 
 export async function fetchFeaturedProperties() {
-  const snapshot = await getDocs(
-    query(collection(db, "properties"), where("featured", "==", true))
+  const snapshot = await withPublicReadAuth(() =>
+    getDocs(
+      query(collection(db, "properties"), where("featured", "==", true))
+    )
   );
 
   return snapshot.docs.map(mapProperty);
 }
 
 export async function fetchProperties() {
-  const snapshot = await getDocs(collection(db, "properties"));
+  const snapshot = await withPublicReadAuth(() =>
+    getDocs(collection(db, "properties"))
+  );
   const properties = snapshot.docs.map(mapProperty);
 
   properties.sort(sortProperties);
@@ -63,20 +72,22 @@ export async function fetchProperties() {
 }
 
 export async function fetchPropertyById(id: string) {
-  const snapshot = await getDoc(doc(db, "properties", id));
+  const snapshot = await withPublicReadAuth(() =>
+    getDoc(doc(db, "properties", id))
+  );
   return snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as Property) : null;
 }
 
 export async function fetchFeaturedCars() {
-  const snapshot = await getDocs(
-    query(collection(db, "cars"), where("featured", "==", true))
+  const snapshot = await withPublicReadAuth(() =>
+    getDocs(query(collection(db, "cars"), where("featured", "==", true)))
   );
 
   return snapshot.docs.map(mapCar);
 }
 
 export async function fetchCars() {
-  const snapshot = await getDocs(collection(db, "cars"));
+  const snapshot = await withPublicReadAuth(() => getDocs(collection(db, "cars")));
   const cars = snapshot.docs.map(mapCar);
 
   cars.sort(sortCars);
@@ -84,27 +95,31 @@ export async function fetchCars() {
 }
 
 export async function fetchCarById(id: string) {
-  const snapshot = await getDoc(doc(db, "cars", id));
+  const snapshot = await withPublicReadAuth(() => getDoc(doc(db, "cars", id)));
   return snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as Car) : null;
 }
 
 export async function fetchReviewsByProperty(propertyId: string) {
-  const snapshot = await getDocs(
-    query(collection(db, "reviews"), where("propertyId", "==", propertyId))
+  const snapshot = await withPublicReadAuth(() =>
+    getDocs(
+      query(collection(db, "reviews"), where("propertyId", "==", propertyId))
+    )
   );
 
   return snapshot.docs.map(mapReview);
 }
 
 export async function fetchReviewsByCar(carId: string) {
-  const snapshot = await getDocs(
-    query(collection(db, "reviews"), where("carId", "==", carId))
+  const snapshot = await withPublicReadAuth(() =>
+    getDocs(query(collection(db, "reviews"), where("carId", "==", carId)))
   );
 
   return snapshot.docs.map(mapReview);
 }
 
 export async function fetchAllReviews() {
-  const snapshot = await getDocs(collection(db, "reviews"));
+  const snapshot = await withPublicReadAuth(() =>
+    getDocs(collection(db, "reviews"))
+  );
   return snapshot.docs.map(mapReview);
 }
