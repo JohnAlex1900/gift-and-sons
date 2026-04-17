@@ -2,12 +2,10 @@
 {
   "functions": {
     "api/*.js": {
-      "includeFiles": "server/dist/**",
-      "runtime": "nodejs20.x"
+      "includeFiles": "server/dist/**"
     },
     "api/**/*.js": {
-      "includeFiles": "server/dist/**",
-      "runtime": "nodejs20.x"
+      "includeFiles": "server/dist/**"
     }
   },
   "rewrites": [
