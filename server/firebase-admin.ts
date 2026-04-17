@@ -16,8 +16,22 @@ const normalizePrivateKey = (privateKey: string) => {
     trimmed.startsWith('"') && trimmed.endsWith('"')
       ? trimmed.slice(1, -1)
       : trimmed;
+  const normalized = unwrapped.replace(/\\n/g, "\n").replace(/\r\n/g, "\n");
 
-  return unwrapped.replace(/\\n/g, "\n");
+  if (normalized.includes("-----BEGIN PRIVATE KEY-----")) {
+    return normalized;
+  }
+
+  try {
+    const decoded = Buffer.from(normalized, "base64").toString("utf8");
+    if (decoded.includes("-----BEGIN PRIVATE KEY-----")) {
+      return decoded.replace(/\\n/g, "\n").replace(/\r\n/g, "\n");
+    }
+  } catch {
+    // Fall through to the normalized value below.
+  }
+
+  return normalized;
 };
 
 const parseServiceAccountJson = (rawValue: string) => {
