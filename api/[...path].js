@@ -26,6 +26,13 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Vercel catch-all functions can forward URL as /properties/... instead of /api/properties/...
+    // while our Express routes are mounted under /api.
+    if (typeof req.url === "string" && !req.url.startsWith("/api")) {
+      const normalizedPath = req.url.startsWith("/") ? req.url : `/${req.url}`;
+      req.url = `/api${normalizedPath}`;
+    }
+
     const app = await getServerApp();
     return app(req, res);
   } catch (error) {
