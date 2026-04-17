@@ -2,6 +2,7 @@ import "./env.js";
 import express from "express";
 import cors from "cors";
 import { registerRoutes } from "./routes.js";
+import { verifyFirebaseAdminCredentials } from "./firebase-admin.js";
 const normalizeOrigin = (origin) => origin.trim().replace(/\/$/, "").toLowerCase();
 const getAllowedOrigins = () => {
     const staticOrigins = [
@@ -111,6 +112,7 @@ export const getServerApp = async () => {
         appPromise = (async () => {
             const app = express();
             configureMiddleware(app);
+            await verifyFirebaseAdminCredentials();
             try {
                 await registerRoutes(app);
             }

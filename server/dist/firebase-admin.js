@@ -123,25 +123,40 @@ const getServiceAccountFromEnv = () => {
             throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON must include project_id, client_email, and private_key");
         }
         return {
-            projectId: parsedAccount.project_id,
-            clientEmail: parsedAccount.client_email,
-            privateKey: (() => {
-                const normalized = normalizePrivateKey(parsedAccount.private_key);
-                assertPrivateKeyShape(normalized, "FIREBASE_SERVICE_ACCOUNT_JSON.private_key");
-                return normalized;
-            })(),
+            serviceAccount: {
+                projectId: parsedAccount.project_id,
+                clientEmail: parsedAccount.client_email,
+                privateKey: (() => {
+                    const normalized = normalizePrivateKey(parsedAccount.private_key);
+                    assertPrivateKeyShape(normalized, "FIREBASE_SERVICE_ACCOUNT_JSON.private_key");
+                    return normalized;
+                })(),
+            },
+            source: "FIREBASE_SERVICE_ACCOUNT_JSON",
         };
     }
     const rawPrivateKey = getRequiredEnv("FIREBASE_PRIVATE_KEY");
     const normalizedPrivateKey = normalizePrivateKey(rawPrivateKey);
     assertPrivateKeyShape(normalizedPrivateKey, "FIREBASE_PRIVATE_KEY");
     return {
-        projectId: getRequiredEnv("FIREBASE_PROJECT_ID"),
-        clientEmail: getRequiredEnv("FIREBASE_CLIENT_EMAIL"),
-        privateKey: normalizedPrivateKey,
+        serviceAccount: {
+            projectId: getRequiredEnv("FIREBASE_PROJECT_ID"),
+            clientEmail: getRequiredEnv("FIREBASE_CLIENT_EMAIL"),
+            privateKey: normalizedPrivateKey,
+        },
+        source: "FIREBASE_PROJECT_ID/FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY",
     };
 };
-const serviceAccount = getServiceAccountFromEnv();
+const { serviceAccount, source: credentialSource } = getServiceAccountFromEnv();
+const serviceAccountDomain = serviceAccount.clientEmail.split("@")[1] || "";
+if (!serviceAccountDomain.endsWith(".iam.gserviceaccount.com")) {
+    console.warn(`[firebase-admin] clientEmail does not look like a service account email: ${serviceAccount.clientEmail}`);
+}
+if (serviceAccountDomain.includes(".iam.gserviceaccount.com") &&
+    !serviceAccountDomain.includes(serviceAccount.projectId)) {
+    console.warn(`[firebase-admin] projectId (${serviceAccount.projectId}) and clientEmail (${serviceAccount.clientEmail}) appear to be from different projects.`);
+}
+console.info(`[firebase-admin] Initializing with source=${credentialSource}, projectId=${serviceAccount.projectId}, clientEmail=${serviceAccount.clientEmail}`);
 const app = getApps().length > 0
     ? getApp()
     : initializeApp({
@@ -149,3 +164,36 @@ const app = getApps().length > 0
     });
 export const adminAuth = getAuth(app);
 export const db = getFirestore(app);
+let firebaseCredentialVerificationPromise = null;
+export const verifyFirebaseAdminCredentials = async () => {
+    if (!firebaseCredentialVerificationPromise) {
+        firebaseCredentialVerificationPromise = (async () => {
+            try {
+                // A tiny read verifies credential exchange/token generation against Firestore.
+                await db.collection("properties").limit(1).get();
+                console.info("[firebase-admin] Firestore credential verification succeeded.");
+            }
+            catch (error) {
+                const code = typeof error === "object" && error && "code" in error
+                    ? error.code
+                    : undefined;
+                const message = typeof error === "object" && error && "message" in error
+                    ? error.message
+                    : undefined;
+                const isUnauthenticated = code === 16 ||
+                    code === "16" ||
+                    code === "UNAUTHENTICATED" ||
+                    (typeof message === "string" &&
+                        message.toUpperCase().includes("UNAUTHENTICATED"));
+                if (isUnauthenticated) {
+                    throw new Error(`Firebase Admin authentication failed (code 16 UNAUTHENTICATED). Verify that FIREBASE_SERVICE_ACCOUNT_JSON is a valid, active service-account key for project ${serviceAccount.projectId}, and that the client_email/private_key are from the same key file.`);
+                }
+                throw error;
+            }
+        })();
+        firebaseCredentialVerificationPromise.catch(() => {
+            firebaseCredentialVerificationPromise = null;
+        });
+    }
+    return firebaseCredentialVerificationPromise;
+};

@@ -3,6 +3,7 @@ import "./env";
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { registerRoutes } from "./routes";
+import { verifyFirebaseAdminCredentials } from "./firebase-admin";
 
 const normalizeOrigin = (origin: string) => origin.trim().replace(/\/$/, "").toLowerCase();
 
@@ -138,6 +139,8 @@ export const getServerApp = async () => {
     appPromise = (async () => {
       const app = express();
       configureMiddleware(app);
+
+      await verifyFirebaseAdminCredentials();
 
       try {
         await registerRoutes(app);
