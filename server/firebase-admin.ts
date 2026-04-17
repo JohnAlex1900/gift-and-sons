@@ -31,6 +31,13 @@ const normalizePrivateKey = (privateKey: string) => {
     // Fall through to the normalized value below.
   }
 
+  const compact = normalized.replace(/\s+/g, "");
+
+  if (/^[A-Za-z0-9+/=]+$/.test(compact) && compact.length > 100) {
+    const wrappedBody = compact.match(/.{1,64}/g)?.join("\n") ?? compact;
+    return `-----BEGIN PRIVATE KEY-----\n${wrappedBody}\n-----END PRIVATE KEY-----`;
+  }
+
   return normalized;
 };
 
