@@ -4,6 +4,15 @@ import { createRouteHandler } from "uploadthing/express";
 import { uploadRouter } from "./uploadthing.js";
 import nodemailer from "nodemailer";
 export async function registerRoutes(app) {
+    const errorPayload = (error) => {
+        const code = typeof error === "object" && error && "code" in error
+            ? error.code
+            : undefined;
+        return {
+            message: "Server error",
+            code: typeof code === "string" ? code : "INTERNAL",
+        };
+    };
     // Auth middleware
     const requireAuth = async (req, res, next) => {
         try {
@@ -36,7 +45,7 @@ export async function registerRoutes(app) {
         }
         catch (error) {
             console.error("\u274C Error fetching properties:", error);
-            res.status(500).json({ message: "Server error" });
+            res.status(500).json(errorPayload(error));
         }
     });
     app.get("/api/properties/featured", async (req, res) => {
@@ -46,7 +55,7 @@ export async function registerRoutes(app) {
         }
         catch (error) {
             console.error("\u274C Error fetching featured properties:", error);
-            res.status(500).json({ message: "Server error" });
+            res.status(500).json(errorPayload(error));
         }
     });
     app.get("/api/properties/:id", async (req, res) => {
@@ -60,7 +69,7 @@ export async function registerRoutes(app) {
         }
         catch (error) {
             console.error("\u274C Error fetching property:", error);
-            res.status(500).json({ message: "Server error" });
+            res.status(500).json(errorPayload(error));
         }
     });
     // Admin property management
@@ -215,7 +224,7 @@ export async function registerRoutes(app) {
         }
         catch (error) {
             console.error("\u274C Error fetching cars:", error);
-            res.status(500).json({ message: "Server error" });
+            res.status(500).json(errorPayload(error));
         }
     });
     app.get("/api/cars/featured", async (req, res) => {
@@ -225,7 +234,7 @@ export async function registerRoutes(app) {
         }
         catch (error) {
             console.error("\u274C Error fetching featured cars:", error);
-            res.status(500).json({ message: "Server error" });
+            res.status(500).json(errorPayload(error));
         }
     });
     app.get("/api/cars/:id", async (req, res) => {
@@ -239,7 +248,7 @@ export async function registerRoutes(app) {
         }
         catch (error) {
             console.error("\u274C Error fetching car:", error);
-            res.status(500).json({ message: "Server error" });
+            res.status(500).json(errorPayload(error));
         }
     });
     // Admin property management

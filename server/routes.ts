@@ -7,6 +7,18 @@ import nodemailer from "nodemailer";
 import { AuthenticatedRequest } from "./types/express";
 
 export async function registerRoutes(app: Express) {
+  const errorPayload = (error: unknown) => {
+    const code =
+      typeof error === "object" && error && "code" in error
+        ? (error as { code?: unknown }).code
+        : undefined;
+
+    return {
+      message: "Server error",
+      code: typeof code === "string" ? code : "INTERNAL",
+    };
+  };
+
   // Auth middleware
   const requireAuth = async (
     req: AuthenticatedRequest,
@@ -48,7 +60,7 @@ export async function registerRoutes(app: Express) {
         res.json(properties);
       } catch (error) {
         console.error("❌ Error fetching properties:", error);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json(errorPayload(error));
       }
     }
   );
@@ -61,7 +73,7 @@ export async function registerRoutes(app: Express) {
         res.json(properties);
       } catch (error) {
         console.error("❌ Error fetching featured properties:", error);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json(errorPayload(error));
       }
     }
   );
@@ -78,7 +90,7 @@ export async function registerRoutes(app: Express) {
         res.json(property);
       } catch (error) {
         console.error("❌ Error fetching property:", error);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json(errorPayload(error));
       }
     }
   );
@@ -271,7 +283,7 @@ export async function registerRoutes(app: Express) {
       res.json(cars);
     } catch (error) {
       console.error("❌ Error fetching cars:", error);
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json(errorPayload(error));
     }
   });
 
@@ -283,7 +295,7 @@ export async function registerRoutes(app: Express) {
         res.json(cars);
       } catch (error) {
         console.error("❌ Error fetching featured cars:", error);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json(errorPayload(error));
       }
     }
   );
@@ -298,7 +310,7 @@ export async function registerRoutes(app: Express) {
       res.json(car);
     } catch (error) {
       console.error("❌ Error fetching car:", error);
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json(errorPayload(error));
     }
   });
 
