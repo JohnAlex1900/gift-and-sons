@@ -7,14 +7,34 @@ const normalizePrivateKey = (privateKey) => {
     const unwrapped = trimmed.startsWith("\"") && trimmed.endsWith("\"")
         ? trimmed.slice(1, -1)
         : trimmed;
-    const normalized = unwrapped.replace(/\\n/g, "\n").replace(/\r\n/g, "\n");
-    if (normalized.includes("-----BEGIN PRIVATE KEY-----")) {
+    const decodedUri = unwrapped.includes("%") ? decodeURIComponent(unwrapped) : unwrapped;
+    const normalized = decodedUri
+        .replace(/\\+r\\+n/g, "\n")
+        .replace(/\\+n/g, "\n")
+        .replace(/\r\n/g, "\n")
+        .trim();
+    const hasPkcs8Envelope = normalized.includes("-----BEGIN PRIVATE KEY-----") &&
+        normalized.includes("-----END PRIVATE KEY-----");
+    const hasPkcs1Envelope = normalized.includes("-----BEGIN RSA PRIVATE KEY-----") &&
+        normalized.includes("-----END RSA PRIVATE KEY-----");
+    if (hasPkcs8Envelope || hasPkcs1Envelope) {
         return normalized;
+    }
+    const inlinePkcs8 = normalized.match(/-----BEGIN PRIVATE KEY-----\s*([A-Za-z0-9+/=\s]+)\s*-----END PRIVATE KEY-----/);
+    if (inlinePkcs8?.[1]) {
+        const body = inlinePkcs8[1].replace(/\s+/g, "");
+        const wrappedBody = body.match(/.{1,64}/g)?.join("\n") ?? body;
+        return `-----BEGIN PRIVATE KEY-----\n${wrappedBody}\n-----END PRIVATE KEY-----`;
     }
     try {
         const decoded = Buffer.from(normalized, "base64").toString("utf8");
-        if (decoded.includes("-----BEGIN PRIVATE KEY-----")) {
-            return decoded.replace(/\\n/g, "\n").replace(/\r\n/g, "\n");
+        if (decoded.includes("-----BEGIN PRIVATE KEY-----") ||
+            decoded.includes("-----BEGIN RSA PRIVATE KEY-----")) {
+            return decoded
+                .replace(/\\+r\\+n/g, "\n")
+                .replace(/\\+n/g, "\n")
+                .replace(/\r\n/g, "\n")
+                .trim();
         }
     }
     catch {
