@@ -26,6 +26,23 @@ export default async function handler(req, res) {
   }
 
   try {
+    // If Vercel rewrites /api/<nested> to this function with ?path=<nested>,
+    // reconstruct the original API URL so Express route matching works.
+    const rewrittenPath = req.query?.path;
+    const normalizedRewrittenPath = Array.isArray(rewrittenPath)
+      ? rewrittenPath[0]
+      : rewrittenPath;
+
+    if (typeof normalizedRewrittenPath === "string" && normalizedRewrittenPath.length > 0) {
+      const originalUrl = new URL(req.url || "/", "http://localhost");
+      originalUrl.searchParams.delete("path");
+      const remainingQuery = originalUrl.searchParams.toString();
+      const cleanPath = normalizedRewrittenPath.startsWith("/")
+        ? normalizedRewrittenPath.slice(1)
+        : normalizedRewrittenPath;
+      req.url = `/api/${cleanPath}${remainingQuery ? `?${remainingQuery}` : ""}`;
+    }
+
     // Vercel catch-all functions can forward URL as /properties/... instead of /api/properties/...
     // while our Express routes are mounted under /api.
     if (typeof req.url === "string" && !req.url.startsWith("/api")) {
