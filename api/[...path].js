@@ -1,6 +1,6 @@
 import { getServerApp } from "../server/dist/app.js";
 
-const setCorsHeaders = (req: any, res: any) => {
+const setCorsHeaders = (req, res) => {
   const origin = req.headers?.origin;
   const allowOrigin = typeof origin === "string" ? origin : "*";
 
@@ -17,7 +17,7 @@ const setCorsHeaders = (req: any, res: any) => {
   res.setHeader("Access-Control-Allow-Credentials", "true");
 };
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req, res) {
   setCorsHeaders(req, res);
 
   if (req.method === "OPTIONS") {
