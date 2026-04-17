@@ -316,7 +316,7 @@ export default function Admin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cars"] });
-      toast({ title: "Property updated successfully" });
+      toast({ title: "Car updated successfully" });
       resetForm();
       setSelectedProperty(null);
     },
@@ -333,7 +333,7 @@ export default function Admin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cars"] });
-      toast({ title: "Property deleted successfully" });
+      toast({ title: "Car deleted successfully" });
     },
   });
 

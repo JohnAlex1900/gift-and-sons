@@ -511,6 +511,8 @@ export const addCar = async (car: {
 export const updateCar = async (id: string, updates: Partial<any>) => {
   const docRef = carsCollection.doc(id);
   await docRef.set(updates, { merge: true });
+  const updatedDoc = await docRef.get();
+  return updatedDoc.exists ? { id: updatedDoc.id, ...updatedDoc.data() } : null;
 };
 
 // Delete a property
