@@ -193,6 +193,7 @@ Troubleshooting production API data not loading
 - Verify VITE_API_BASE_URL is set in the frontend deployment environment.
 - Verify backend deployment has valid Firebase Admin credentials (one of the server variable options above).
 - If backend endpoints return HTTP 500, check backend logs first for Firebase key format or permission errors.
+- If the server says the key looks like a certificate/public key, replace it with the service-account private_key PEM from Firebase, not a client certificate or public key.
 
 Important: because the Firebase client key and the admin service-account private key were previously committed, they should be rotated in Firebase/Google Cloud after this change is deployed.
 

@@ -11,6 +11,25 @@ type FirebaseServiceAccount = {
   privateKey: string;
 };
 
+const isPublicOrCertificateKey = (value: string) =>
+  value.includes("-----BEGIN CERTIFICATE-----") ||
+  value.includes("-----BEGIN PUBLIC KEY-----") ||
+  value.includes("-----BEGIN RSA PUBLIC KEY-----");
+
+const assertPrivateKeyShape = (value: string, source: string) => {
+  if (isPublicOrCertificateKey(value)) {
+    throw new Error(
+      `${source} contains a certificate/public key, not a Firebase service-account private key. Use the PEM value from the service account JSON private_key field.`
+    );
+  }
+
+  if (!value.includes("-----BEGIN PRIVATE KEY-----") && !value.includes("-----BEGIN RSA PRIVATE KEY-----")) {
+    throw new Error(
+      `${source} does not look like a Firebase service-account private key. Provide the private_key from the service account JSON or the full FIREBASE_SERVICE_ACCOUNT_JSON secret.`
+    );
+  }
+};
+
 const normalizePrivateKey = (privateKey: string) => {
   const trimmed = privateKey.trim();
   const unwrapped =
@@ -72,6 +91,12 @@ const normalizePrivateKey = (privateKey: string) => {
   };
 
   for (const candidate of candidateStrings) {
+    if (isPublicOrCertificateKey(candidate)) {
+      throw new Error(
+        "Firebase private key parsing failed because the value appears to be a certificate/public key. Replace it with the service-account private_key PEM."
+      );
+    }
+
     const canonical = tryCanonicalize(candidate);
     if (canonical) {
       return canonical.replace(/\r\n/g, "\n").trim();
@@ -154,14 +179,22 @@ const getServiceAccountFromEnv = (): FirebaseServiceAccount => {
     return {
       projectId: parsedAccount.project_id,
       clientEmail: parsedAccount.client_email,
-      privateKey: normalizePrivateKey(parsedAccount.private_key),
+      privateKey: (() => {
+        const normalized = normalizePrivateKey(parsedAccount.private_key);
+        assertPrivateKeyShape(normalized, "FIREBASE_SERVICE_ACCOUNT_JSON.private_key");
+        return normalized;
+      })(),
     };
   }
+
+  const rawPrivateKey = getRequiredEnv("FIREBASE_PRIVATE_KEY");
+  const normalizedPrivateKey = normalizePrivateKey(rawPrivateKey);
+  assertPrivateKeyShape(normalizedPrivateKey, "FIREBASE_PRIVATE_KEY");
 
   return {
     projectId: getRequiredEnv("FIREBASE_PROJECT_ID"),
     clientEmail: getRequiredEnv("FIREBASE_CLIENT_EMAIL"),
-    privateKey: normalizePrivateKey(getRequiredEnv("FIREBASE_PRIVATE_KEY")),
+    privateKey: normalizedPrivateKey,
   };
 };
 
