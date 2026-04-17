@@ -8,7 +8,6 @@
     }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/[...path].js?path=$1" },
     { "source": "/((?!api(?:/|$)).*)", "destination": "/index.html" }
   ],
   "redirects": [],
