@@ -1,18 +1,4 @@
-{
-  "functions": {
-    "api/*.js": {
-      "includeFiles": "server/dist/**"
-    },
-    "api/**/*.js": {
-      "includeFiles": "server/dist/**"
-    }
-  },
-  "rewrites": [
-    { "source": "/((?!api(?:/|$)).*)", "destination": "/index.html" }
-  ],
-  "redirects": [],
-  "headers": []
-}
+
 {
   "functions": {
     "api/*.js": {
