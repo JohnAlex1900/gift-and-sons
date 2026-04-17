@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => {
         plugins.push(cartographer());
       })
       .catch((error) => {
-        console.warn("Failed to load @replit/vite-plugin-cartographer", error);
+        console.warn("Failed somehow to load @replit/vite-plugin-cartographer", error);
       });
   }
 
