@@ -1,6 +1,9 @@
 {
   "functions": {
-    "api/[...path].js": {
+    "api/*.js": {
+      "includeFiles": "server/dist/**"
+    },
+    "api/**/*.js": {
       "includeFiles": "server/dist/**"
     }
   },
