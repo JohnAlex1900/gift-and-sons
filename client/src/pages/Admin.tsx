@@ -318,7 +318,7 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["/api/cars"] });
       toast({ title: "Car updated successfully" });
       resetForm();
-      setSelectedProperty(null);
+      setSelectedCar(null);
     },
   });
 
@@ -663,7 +663,10 @@ export default function Admin() {
                           className="bg-foreground hover:bg-background hover:text-foreground"
                           type="button"
                           variant="outline"
-                          onClick={() => setSelectedProperty(null)}
+                          onClick={() => {
+                            setSelectedProperty(null);
+                            setIsPropertyFormOpen(false);
+                          }}
                           disabled={isUpdating}
                         >
                           Cancel
@@ -826,7 +829,10 @@ export default function Admin() {
                           className="bg-foreground hover:bg-background hover:text-foreground"
                           type="button"
                           variant="outline"
-                          onClick={() => setSelectedCar(null)}
+                          onClick={() => {
+                            setSelectedCar(null);
+                            setIsCarFormOpen(false);
+                          }}
                           disabled={isUpdating}
                         >
                           Cancel
@@ -907,7 +913,10 @@ export default function Admin() {
                           className="bg-foreground hover:bg-background hover:text-foreground"
                           variant="outline"
                           size="sm"
-                          onClick={() => setSelectedProperty(property)}
+                          onClick={() => {
+                            setSelectedProperty(property);
+                            setIsPropertyFormOpen(true);
+                          }}
                         >
                           Edit
                         </Button>
@@ -955,7 +964,10 @@ export default function Admin() {
                           className="bg-foreground hover:bg-background hover:text-foreground"
                           variant="outline"
                           size="sm"
-                          onClick={() => setSelectedCar(car)}
+                          onClick={() => {
+                            setSelectedCar(car);
+                            setIsCarFormOpen(true);
+                          }}
                         >
                           Edit
                         </Button>
