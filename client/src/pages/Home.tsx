@@ -2,10 +2,9 @@ import { Hero } from "@/components/Hero";
 import { PropertyCard } from "@/components/PropertyCard";
 import { useQuery } from "@tanstack/react-query";
 import { Property } from "@/types";
-import axios from "axios";
 import { Helmet } from "react-helmet-async";
 import React from "react";
-import { apiUrl } from "@/api";
+import { fetchFeaturedProperties } from "@/lib/public-firestore";
 
 export default function Home() {
   // Fetch featured properties
@@ -16,12 +15,7 @@ export default function Home() {
     error,
   } = useQuery<Property[]>({
     queryKey: ["/api/properties/featured"],
-    queryFn: async () => {
-      const response = await axios.get<Property[]>(
-        apiUrl("/api/properties/featured")
-      );
-      return response.data;
-    },
+    queryFn: fetchFeaturedProperties,
   });
 
   // Show loading state

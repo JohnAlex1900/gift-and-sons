@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Star } from "lucide-react";
 import { Review, Item } from "@/types";
 import { Helmet } from "react-helmet-async";
-import { apiUrl } from "@/api";
+import {
+  fetchAllReviews,
+  fetchCarById,
+  fetchPropertyById,
+} from "@/lib/public-firestore";
 
 function ReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -16,14 +19,7 @@ function ReviewsPage() {
   useEffect(() => {
     const fetchReviewsAndItems = async () => {
       try {
-        const res = await fetch(apiUrl("/api/reviews"));
-        if (!res.ok) throw new Error("Failed to fetch reviews");
-        const data = await res.json();
-
-        if (!Array.isArray(data)) {
-          console.error("Expected array but got:", data);
-          return;
-        }
+        const data = await fetchAllReviews();
 
         setReviews(data);
 
@@ -44,15 +40,15 @@ function ReviewsPage() {
 
             try {
               if (review.propertyId) {
-                const propertyRes = await axios.get(
-                  apiUrl(`/api/properties/${review.propertyId}`)
-                );
-                itemData[review.propertyId] = propertyRes.data;
+                const property = await fetchPropertyById(review.propertyId);
+                if (property) {
+                  itemData[review.propertyId] = property;
+                }
               } else if (review.carId) {
-                const carRes = await axios.get(
-                  apiUrl(`/api/cars/${review.carId}`)
-                );
-                itemData[review.carId] = carRes.data;
+                const car = await fetchCarById(review.carId);
+                if (car) {
+                  itemData[review.carId] = car;
+                }
               }
             } catch (err) {
               console.warn(`Item not found for ID ${id}`);

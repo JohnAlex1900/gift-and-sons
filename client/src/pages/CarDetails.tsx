@@ -11,6 +11,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import React from "react";
+import { fetchCarById, fetchReviewsByCar } from "@/lib/public-firestore";
 import { apiUrl } from "@/api";
 
 async function markReviewsAsViewed({
@@ -121,17 +122,17 @@ export default function CarDetails() {
     },
     onMutate: async ({ reviewId, reply }) => {
       await queryClient.cancelQueries({
-        queryKey: ["/api/reviews/property", id],
+        queryKey: ["/api/reviews/car", id],
       });
 
       const previousReviews = queryClient.getQueryData<Review[]>([
-        "/api/reviews/property",
+        "/api/reviews/car",
         id,
       ]);
 
       // ✅ Ensure reply is stored correctly
       queryClient.setQueryData(
-        ["/api/reviews/property", id],
+        ["/api/reviews/car", id],
         (oldReviews: Review[] = []) =>
           oldReviews.map((review) =>
             review.id === reviewId
@@ -150,7 +151,7 @@ export default function CarDetails() {
       toast({ title: "Reply added successfully!" });
 
       await queryClient.invalidateQueries({
-        queryKey: ["/api/reviews/property", id],
+        queryKey: ["/api/reviews/car", id],
       });
     },
     onError: (error, _, context) => {
@@ -162,7 +163,7 @@ export default function CarDetails() {
 
       if (context?.previousReviews) {
         queryClient.setQueryData(
-          ["/api/reviews/property", id],
+          ["/api/reviews/car", id],
           context.previousReviews
         );
       }
@@ -188,40 +189,20 @@ export default function CarDetails() {
     return `${month}-${day}-${year}`; // Converts "2025-03-28" → "03-28-2025"
   };
 
-  const { data: car, isLoading } = useQuery<Car>({
+  const { data: car, isLoading } = useQuery<Car | null>({
     queryKey: [`/api/cars/${id}`],
     queryFn: async () => {
       if (!id) return null;
-      const response = await fetch(apiUrl(`/api/cars/${id}`));
-      if (!response.ok) {
-        throw new Error("Failed to fetch Car details");
-      }
-      return response.json();
+      return fetchCarById(id);
     },
     staleTime: 60000,
   });
 
   const { data: reviews = [], isLoading: reviewsLoading } = useQuery<Review[]>({
-    queryKey: [`/api/reviews/property/${id}`],
+    queryKey: [`/api/reviews/car/${id}`],
     queryFn: async () => {
-      if (!id) return null;
-
-      const token = await user?.getIdToken();
-
-      const response = await fetch(
-        apiUrl(`/api/reviews/property/${id}`),
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch reviews");
-      }
-      const reviewsData = await response.json();
-
-      return reviewsData;
+      if (!id) return [];
+      return fetchReviewsByCar(id);
     },
     staleTime: 60000,
   });

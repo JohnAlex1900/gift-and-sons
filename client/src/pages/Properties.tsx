@@ -3,10 +3,9 @@ import { SearchFilters } from "@/components/SearchFilters";
 import { useQuery } from "@tanstack/react-query";
 import { Property } from "@/types";
 import { useState } from "react";
-import axios from "axios";
 import { Helmet } from "react-helmet-async";
 import React from "react";
-import { apiUrl } from "@/api";
+import { fetchProperties } from "@/lib/public-firestore";
 
 export default function Properties() {
   const [filters, setFilters] = useState<{
@@ -17,10 +16,7 @@ export default function Properties() {
 
   const { data: properties, isLoading } = useQuery<Property[]>({
     queryKey: ["/api/properties", filters],
-    queryFn: async () => {
-      const response = await axios.get<Property[]>(apiUrl("/api/properties"));
-      return response.data;
-    },
+    queryFn: fetchProperties,
   });
 
   const filteredProperties = properties?.filter((property) => {

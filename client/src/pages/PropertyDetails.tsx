@@ -10,7 +10,7 @@ import { auth } from "@/lib/firebase";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { apiUrl } from "@/api";
+import { fetchPropertyById, fetchReviewsByProperty } from "@/lib/public-firestore";
 
 async function markReviewsAsViewed({
   propertyId,
@@ -192,11 +192,7 @@ export default function PropertyDetails() {
     queryKey: [`/api/properties/${id}`],
     queryFn: async () => {
       if (!id) return null;
-      const response = await fetch(apiUrl(`/api/properties/${id}`));
-      if (!response.ok) {
-        throw new Error("Failed to fetch property details");
-      }
-      return response.json();
+      return fetchPropertyById(id);
     },
     staleTime: 60000,
   });
@@ -204,24 +200,8 @@ export default function PropertyDetails() {
   const { data: reviews = [], isLoading: reviewsLoading } = useQuery<Review[]>({
     queryKey: [`/api/reviews/property/${id}`],
     queryFn: async () => {
-      if (!id) return null;
-
-      const token = await user?.getIdToken();
-
-      const response = await fetch(
-        apiUrl(`/api/reviews/property/${id}`),
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch reviews");
-      }
-      const reviewsData = await response.json();
-
-      return reviewsData;
+      if (!id) return [];
+      return fetchReviewsByProperty(id);
     },
     staleTime: 60000,
   });

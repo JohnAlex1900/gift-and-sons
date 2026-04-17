@@ -1,12 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Car } from "@/types";
 import { useState } from "react";
-import axios from "axios";
 import { CarCard } from "@/components/CarCard";
 import { CarSearchFilters } from "@/components/CarSearchFilters";
 import { Helmet } from "react-helmet-async";
 import React from "react";
-import { apiUrl } from "@/api";
+import { fetchCars } from "@/lib/public-firestore";
 
 export default function Cars() {
   const [filters, setFilters] = useState<{
@@ -17,10 +16,7 @@ export default function Cars() {
 
   const { data: cars, isLoading } = useQuery<Car[]>({
     queryKey: ["/api/cars", filters],
-    queryFn: async () => {
-      const response = await axios.get<Car[]>(apiUrl("/api/cars"));
-      return response.data;
-    },
+    queryFn: fetchCars,
   });
 
   const filteredCars = cars?.filter((car) => {
