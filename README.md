@@ -176,7 +176,18 @@ FIREBASE_PROJECT_ID
 FIREBASE_CLIENT_EMAIL
 FIREBASE_PRIVATE_KEY
 
-If FIREBASE_SERVICE_ACCOUNT_JSON is easier to manage as a secret, you can provide it as either plain JSON or base64-encoded JSON.
+Recommended format for FIREBASE_SERVICE_ACCOUNT_JSON:
+{
+	"type": "service_account",
+	"project_id": "your-project-id",
+	"private_key_id": "...",
+	"private_key": "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n",
+	"client_email": "firebase-adminsdk-...@...iam.gserviceaccount.com"
+}
+
+You can paste that JSON directly into Vercel as a single secret value, or store the same JSON base64-encoded.
+
+If you use split variables instead, FIREBASE_PRIVATE_KEY must include the full PEM block or the raw private key body with escaped newlines, not a certificate, public key, or truncated value.
 
 Troubleshooting production API data not loading
 - Verify VITE_API_BASE_URL is set in the frontend deployment environment.

@@ -1,4 +1,5 @@
 import "./env.js";
+import { createPrivateKey } from "crypto";
 import { cert, getApp, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
@@ -7,45 +8,70 @@ const normalizePrivateKey = (privateKey) => {
     const unwrapped = trimmed.startsWith("\"") && trimmed.endsWith("\"")
         ? trimmed.slice(1, -1)
         : trimmed;
-    const decodedUri = unwrapped.includes("%") ? decodeURIComponent(unwrapped) : unwrapped;
+    const decodedUri = unwrapped.includes("%")
+        ? decodeURIComponent(unwrapped)
+        : unwrapped;
     const normalized = decodedUri
         .replace(/\\+r\\+n/g, "\n")
         .replace(/\\+n/g, "\n")
         .replace(/\r\n/g, "\n")
         .trim();
-    const hasPkcs8Envelope = normalized.includes("-----BEGIN PRIVATE KEY-----") &&
-        normalized.includes("-----END PRIVATE KEY-----");
-    const hasPkcs1Envelope = normalized.includes("-----BEGIN RSA PRIVATE KEY-----") &&
-        normalized.includes("-----END RSA PRIVATE KEY-----");
-    if (hasPkcs8Envelope || hasPkcs1Envelope) {
-        return normalized;
-    }
-    const inlinePkcs8 = normalized.match(/-----BEGIN PRIVATE KEY-----\s*([A-Za-z0-9+/=\s]+)\s*-----END PRIVATE KEY-----/);
-    if (inlinePkcs8?.[1]) {
-        const body = inlinePkcs8[1].replace(/\s+/g, "");
-        const wrappedBody = body.match(/.{1,64}/g)?.join("\n") ?? body;
-        return `-----BEGIN PRIVATE KEY-----\n${wrappedBody}\n-----END PRIVATE KEY-----`;
+    const candidateStrings = new Set([normalized]);
+    const compact = normalized.replace(/\s+/g, "");
+    if (compact !== normalized) {
+        candidateStrings.add(compact);
     }
     try {
         const decoded = Buffer.from(normalized, "base64").toString("utf8");
-        if (decoded.includes("-----BEGIN PRIVATE KEY-----") ||
-            decoded.includes("-----BEGIN RSA PRIVATE KEY-----")) {
-            return decoded
+        if (decoded.trim().length > 0) {
+            candidateStrings.add(decoded
                 .replace(/\\+r\\+n/g, "\n")
                 .replace(/\\+n/g, "\n")
                 .replace(/\r\n/g, "\n")
-                .trim();
+                .trim());
         }
     }
     catch {
-        // Fall through to the normalized value below.
+        // Ignore invalid base64 candidates.
     }
-    const compact = normalized.replace(/\s+/g, "");
-    if (/^[A-Za-z0-9+/=]+$/.test(compact) && compact.length > 100) {
-        const wrappedBody = compact.match(/.{1,64}/g)?.join("\n") ?? compact;
-        return `-----BEGIN PRIVATE KEY-----\n${wrappedBody}\n-----END PRIVATE KEY-----`;
+    const tryCanonicalize = (value) => {
+        const formats = [
+            { format: "pem" },
+            { format: "der", type: "pkcs8" },
+            { format: "der", type: "pkcs1" },
+        ];
+        for (const options of formats) {
+            try {
+                const keyObject = createPrivateKey({
+                    key: value,
+                    ...options,
+                });
+                return keyObject.export({ format: "pem", type: "pkcs8" });
+            }
+            catch {
+                // Try the next representation.
+            }
+        }
+        return null;
+    };
+    for (const candidate of candidateStrings) {
+        const canonical = tryCanonicalize(candidate);
+        if (canonical) {
+            return canonical.replace(/\r\n/g, "\n").trim();
+        }
+        if (candidate.includes("-----BEGIN PRIVATE KEY-----")) {
+            const bodyMatch = candidate.match(/-----BEGIN PRIVATE KEY-----\s*([A-Za-z0-9+/=\s]+)\s*-----END PRIVATE KEY-----/);
+            if (bodyMatch?.[1]) {
+                const wrappedBody = bodyMatch[1].replace(/\s+/g, "");
+                const reconstructed = `-----BEGIN PRIVATE KEY-----\n${wrappedBody}\n-----END PRIVATE KEY-----`;
+                const reconstructedCanonical = tryCanonicalize(reconstructed);
+                if (reconstructedCanonical) {
+                    return reconstructedCanonical.replace(/\r\n/g, "\n").trim();
+                }
+            }
+        }
     }
-    return normalized;
+    throw new Error("Unable to parse Firebase private key. Provide a PKCS8 PEM private key (BEGIN PRIVATE KEY) or base64-encoded service account JSON.");
 };
 const parseServiceAccountJson = (rawValue) => {
     const candidateValues = [rawValue];
