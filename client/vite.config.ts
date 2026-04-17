@@ -63,6 +63,14 @@ export default defineConfig(({ mode }) => {
         strict: true,
       },
       historyApiFallback: true, // Ensures correct routing for SPA
+      proxy: isDevelopment ? {
+        "/api": {
+          target: "http://localhost:5000",
+          changeOrigin: true,
+          rewrite: (path) => path, // Forward the path as-is to the backend
+        },
+      } : {},
+      open: true, // Open browser automatically in development
     },
     base: mode === "development" ? "/" : "./",
     build: {

@@ -9,6 +9,11 @@ const envBaseUrl =
 const resolveApiBaseUrl = () => {
 	if (typeof window !== "undefined") {
 		if (window.location.hostname === "localhost") {
+			// In development, use relative paths so Vite proxy can intercept them
+			if (import.meta.env.DEV) {
+				return "";
+			}
+
 			if (envBaseUrl && envBaseUrl.trim() !== "") {
 				return trimTrailingSlash(envBaseUrl.trim());
 			}
