@@ -1,0 +1,265 @@
+# Gift & Sons International – Corporate Real Estate Platform
+
+A modern corporate real estate website built to showcase premium properties, services, and international real estate offerings.
+
+The platform provides a professional digital presence for **Gift & Sons Properties International**, delivering a modern user interface, responsive layout, and clear service presentation for potential property investors and clients.
+
+---
+
+# Live Website
+
+https://giftandsonsinternational.com
+
+---
+
+# Project Overview
+
+Gift & Sons International is a production-ready corporate real estate website designed to present premium property listings, company services, and global real estate opportunities.
+
+The platform focuses on delivering a **clean corporate design, intuitive navigation, and optimized performance**, ensuring a seamless experience for potential property buyers and investors.
+
+The website was built to reflect the company’s professional brand identity while maintaining fast loading performance and mobile responsiveness.
+
+---
+
+# Key Features
+
+Responsive Corporate Design
+Fully optimized layout that adapts seamlessly across mobile, tablet, and desktop devices.
+
+Property Showcase Interface
+Structured presentation of real estate listings and services for potential clients.
+
+Modern UI Components
+Clean typography, structured layouts, and consistent visual hierarchy.
+
+Business Branding Integration
+Design aligned with the client’s brand identity and corporate presentation.
+
+Optimized Performance
+Efficient loading speeds and SEO-friendly structure.
+
+Professional Navigation System
+Clear navigation flow to help users explore properties and services easily.
+
+---
+
+# Technology Stack
+
+Frontend
+• React
+• Next.js
+• Tailwind CSS
+• JavaScript
+
+Backend / Infrastructure
+• Node.js
+• API integrations
+
+Deployment
+• Vercel
+
+Version Control
+• Git / GitHub
+
+Design Tools
+• Figma
+
+---
+
+# Screenshots
+
+Below are visual previews of the platform.
+
+## Homepage
+
+![Alt text](https://res.cloudinary.com/dcxdamtgm/image/upload/v1773666282/giftandsons_jlke1u.png)
+
+---
+
+## Property Showcase Section
+
+![Alt text](https://res.cloudinary.com/dcxdamtgm/image/upload/v1773666458/Screenshot_from_2026-03-16_16-05-24_n0ei1s.png)
+
+---
+
+## Cars For Sale
+
+![Alt text](https://res.cloudinary.com/dcxdamtgm/image/upload/v1773666459/Screenshot_from_2026-03-16_16-05-59_oi3elx.png)
+
+---
+
+# Project Demo
+
+A walkthrough of the platform interface and user navigation.
+
+[![Video Title](https://res.cloudinary.com/dcxdamtgm/image/upload/v1773666282/giftandsons_jlke1u.png)](https://res.cloudinary.com/dcxdamtgm/video/upload/v1773663749/Screencast_from_2026-03-16_14-54-50_vnz5uu.mp4)
+
+---
+
+# Development Approach
+
+The project was developed following modern frontend development practices, focusing on scalability, performance, and maintainability.
+
+Key development considerations included:
+
+Component-based architecture using React
+Responsive mobile-first layout design
+Reusable UI components
+Optimized asset loading
+Clean and maintainable code structure
+
+---
+
+# Project Structure
+
+/src
+/components → Reusable UI components
+/pages → Application pages
+/assets → Static images and assets
+/styles → Global styling and UI configuration
+
+---
+
+# Installation & Local Development
+
+Clone the repository
+
+git clone https://github.com/JohnAlex1900/giftandsons.git
+
+Navigate into the project folder
+
+cd giftandsons
+
+Install dependencies
+
+npm install
+
+Create local environment files
+
+Copy client/.env.example to client/.env and server/.env.example to server/.env, then fill in the Firebase values.
+
+Run the development server
+
+npm run dev
+
+Open the project in your browser
+
+http://localhost:3000
+
+---
+
+# Deployment
+
+The project is deployed using **Vercel**, providing reliable hosting, global CDN distribution, and automated deployment from the repository.
+
+## Environment Variables
+
+Set these in your local env files and in Vercel project settings.
+
+Client variables
+VITE_API_BASE_URL
+VITE_FIREBASE_API_KEY
+VITE_FIREBASE_PROJECT_ID
+VITE_FIREBASE_APP_ID
+VITE_FIREBASE_AUTH_DOMAIN (optional, defaults to `<project-id>.firebaseapp.com`)
+VITE_FIREBASE_STORAGE_BUCKET (optional, defaults to `<project-id>.appspot.com`)
+VITE_ADMIN_EMAIL
+
+Server variables
+FIREBASE_SERVICE_ACCOUNT_JSON
+ADMIN_EMAIL (recommended for admin reply validation)
+FRONTEND_ORIGINS (optional, comma-separated CORS allowlist)
+
+Alternatively, instead of FIREBASE_SERVICE_ACCOUNT_JSON, you can set:
+FIREBASE_PROJECT_ID
+FIREBASE_CLIENT_EMAIL
+FIREBASE_PRIVATE_KEY
+
+Recommended format for FIREBASE_SERVICE_ACCOUNT_JSON:
+{
+	"type": "service_account",
+	"project_id": "your-project-id",
+	"private_key_id": "...",
+	"private_key": "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n",
+	"client_email": "firebase-adminsdk-...@...iam.gserviceaccount.com"
+}
+
+You can paste that JSON directly into Vercel as a single secret value, or store the same JSON base64-encoded.
+
+If you use split variables instead, FIREBASE_PRIVATE_KEY must include the full PEM block or the raw private key body with escaped newlines, not a certificate, public key, or truncated value.
+
+Troubleshooting production API data not loading
+- Verify VITE_API_BASE_URL is set in the frontend deployment environment.
+- Verify backend deployment has valid Firebase Admin credentials (one of the server variable options above).
+- If backend endpoints return HTTP 500, check backend logs first for Firebase key format or permission errors.
+- If the server says the key looks like a certificate/public key, replace it with the service-account private_key PEM from Firebase, not a client certificate or public key.
+
+Important: because the Firebase client key and the admin service-account private key were previously committed, they should be rotated in Firebase/Google Cloud after this change is deployed.
+
+Deployment platform
+Vercel
+
+## Vercel Serverless Setup (Frontend + Backend Together)
+
+This repository now supports running all backend routes as Vercel serverless functions via `api/[...path].ts`.
+
+1. Import this repository into Vercel.
+2. Set project root to repository root (do not set to `client`).
+3. Set build command to `npm run build`.
+4. Set output directory to `client/dist`.
+5. Add frontend environment variables in Vercel:
+VITE_API_BASE_URL (optional; if omitted, code falls back to Render URL)
+VITE_FIREBASE_API_KEY
+VITE_FIREBASE_PROJECT_ID
+VITE_FIREBASE_APP_ID
+VITE_FIREBASE_AUTH_DOMAIN
+VITE_FIREBASE_STORAGE_BUCKET
+VITE_ADMIN_EMAIL
+6. Add backend environment variables in Vercel:
+FIREBASE_SERVICE_ACCOUNT_JSON (plain JSON or base64-encoded JSON), or FIREBASE_PROJECT_ID/FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY
+ADMIN_EMAIL
+FRONTEND_ORIGINS (recommended for explicit CORS allowlist)
+7. Deploy and verify these endpoints:
+`/api/properties`
+`/api/cars`
+`/api/reviews`
+
+---
+
+# Author
+
+John Njoroge
+Software Engineer
+
+GitHub
+https://github.com/JohnAlex1900
+
+Portfolio
+https://startechsoftwares.co.ke
+
+Location
+Nairobi, Kenya
+
+---
+
+# Project Impact
+
+This platform provides Gift & Sons International with a strong digital presence, enabling the company to showcase luxury properties and attract potential investors through a modern and professional website.
+
+---
+
+# Future Enhancements
+
+Potential future improvements include:
+
+Advanced property search functionality
+Interactive property galleries
+Content management system integration
+Enhanced analytics and performance monitoring
+
+---
+
+# License
+
+This project was developed as part of a professional client project and is maintained for portfolio and demonstration purposes.

@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0, 0%, 0%; /* Grey background */
+    --foreground: 0, 0%, 100%; /* White text */
+    --background2: 0, 0%, 100%;
+    --border: 0, 0%, 20%; /* Default border color */
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
