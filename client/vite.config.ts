@@ -77,7 +77,7 @@ export default defineConfig(({ mode }) => {
         : {},
       open: true, // Open browser automatically in development
     },
-    base: mode === "development" ? "/" : "./",
+    base: "/",
     build: {
       outDir: path.resolve(__dirname, "dist"), // Output directory for the frontend
       emptyOutDir: true, // Clear the output directory before building
