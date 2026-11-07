@@ -31,6 +31,7 @@ import axios from "axios";
 import { Helmet } from "react-helmet-async";
 import { apiUrl } from "@/api";
 import { X } from "lucide-react";
+import { isAdminEmail } from "@/lib/is-admin";
 
 export default function Admin() {
   const [user] = useAuthState(auth);
@@ -239,7 +240,37 @@ export default function Admin() {
   };
 
   const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL as string | undefined;
-  const isAdmin = user?.email === ADMIN_EMAIL;
+  const isAdmin = isAdminEmail(user?.email, ADMIN_EMAIL);
+
+  const deleteRemovedImages = async (imageUrls: string[]) => {
+    if (imageUrls.length === 0) return 0;
+
+    let failedCount = 0;
+    for (let index = 0; index < imageUrls.length; index += 20) {
+      const batch = imageUrls.slice(index, index + 20);
+      try {
+        const response = await apiRequest(
+          "DELETE",
+          apiUrl("/api/admin/images"),
+          { urls: batch },
+        );
+        const result = (await response.json()) as { failedCount?: number };
+        failedCount += result.failedCount ?? 0;
+      } catch (error) {
+        console.error("Could not delete removed images:", error);
+        failedCount += batch.length;
+      }
+    }
+    return failedCount;
+  };
+
+  const getRemovedImageUrls = (
+    previousUrls: string[] | undefined,
+    currentUrls: string[],
+  ) => {
+    const retainedUrls = new Set(currentUrls);
+    return (previousUrls ?? []).filter((url) => !retainedUrls.has(url));
+  };
 
   useEffect(() => {
     if (!user || !isAdmin) {
@@ -318,37 +349,61 @@ export default function Admin() {
     mutationFn: async ({
       id,
       data,
+      removedImageUrls,
     }: {
       id: string;
       data: Partial<Property>;
+      removedImageUrls: string[];
     }) => {
       setIsUpdating(true);
       try {
         await apiRequest("PATCH", apiUrl(`/api/properties/${id}`), data);
+        return await deleteRemovedImages(removedImageUrls);
       } finally {
         setIsUpdating(false);
       }
     },
-    onSuccess: () => {
+    onSuccess: (failedImageDeletions) => {
       queryClient.invalidateQueries({ queryKey: ["/api/properties"] });
-      toast({ title: "Property updated successfully" });
+      toast({
+        title:
+          failedImageDeletions > 0
+            ? "Property updated; some images were not deleted"
+            : "Property updated successfully",
+        description:
+          failedImageDeletions > 0
+            ? `The listing was updated, but ${failedImageDeletions} image${failedImageDeletions === 1 ? "" : "s"} could not be removed from storage.`
+            : undefined,
+        variant: failedImageDeletions > 0 ? "destructive" : "default",
+      });
       resetForm();
       setSelectedProperty(null);
     },
   });
 
   const deletePropertyMutation = useMutation({
-    mutationFn: async (id: string) => {
-      setIsDeleting(id);
+    mutationFn: async (property: Property) => {
+      setIsDeleting(property.id);
       try {
-        await apiRequest("DELETE", apiUrl(`/api/properties/${id}`));
+        await apiRequest("DELETE", apiUrl(`/api/properties/${property.id}`));
+        return await deleteRemovedImages(property.imageUrls ?? []);
       } finally {
         setIsDeleting(null);
       }
     },
-    onSuccess: () => {
+    onSuccess: (failedImageDeletions) => {
       queryClient.invalidateQueries({ queryKey: ["/api/properties"] });
-      toast({ title: "Property deleted successfully" });
+      toast({
+        title:
+          failedImageDeletions > 0
+            ? "Property deleted; some images were not deleted"
+            : "Property deleted successfully",
+        description:
+          failedImageDeletions > 0
+            ? `${failedImageDeletions} image${failedImageDeletions === 1 ? "" : "s"} could not be removed from storage.`
+            : undefined,
+        variant: failedImageDeletions > 0 ? "destructive" : "default",
+      });
     },
   });
 
@@ -401,34 +456,64 @@ export default function Admin() {
   });
 
   const updateCarMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Car> }) => {
+    mutationFn: async ({
+      id,
+      data,
+      removedImageUrls,
+    }: {
+      id: string;
+      data: Partial<Car>;
+      removedImageUrls: string[];
+    }) => {
       setIsUpdating(true);
       try {
         await apiRequest("PATCH", apiUrl(`/api/cars/${id}`), data);
+        return await deleteRemovedImages(removedImageUrls);
       } finally {
         setIsUpdating(false);
       }
     },
-    onSuccess: () => {
+    onSuccess: (failedImageDeletions) => {
       queryClient.invalidateQueries({ queryKey: ["/api/cars"] });
-      toast({ title: "Car updated successfully" });
+      toast({
+        title:
+          failedImageDeletions > 0
+            ? "Car updated; some images were not deleted"
+            : "Car updated successfully",
+        description:
+          failedImageDeletions > 0
+            ? `${failedImageDeletions} image${failedImageDeletions === 1 ? "" : "s"} could not be removed from storage.`
+            : undefined,
+        variant: failedImageDeletions > 0 ? "destructive" : "default",
+      });
       resetForm();
       setSelectedCar(null);
     },
   });
 
   const deleteCarMutation = useMutation({
-    mutationFn: async (id: string) => {
-      setIsDeleting(id);
+    mutationFn: async (car: Car) => {
+      setIsDeleting(car.id);
       try {
-        await apiRequest("DELETE", apiUrl(`/api/cars/${id}`));
+        await apiRequest("DELETE", apiUrl(`/api/cars/${car.id}`));
+        return await deleteRemovedImages(car.imageUrls ?? []);
       } finally {
         setIsDeleting(null);
       }
     },
-    onSuccess: () => {
+    onSuccess: (failedImageDeletions) => {
       queryClient.invalidateQueries({ queryKey: ["/api/cars"] });
-      toast({ title: "Car deleted successfully" });
+      toast({
+        title:
+          failedImageDeletions > 0
+            ? "Car deleted; some images were not deleted"
+            : "Car deleted successfully",
+        description:
+          failedImageDeletions > 0
+            ? `${failedImageDeletions} image${failedImageDeletions === 1 ? "" : "s"} could not be removed from storage.`
+            : undefined,
+        variant: failedImageDeletions > 0 ? "destructive" : "default",
+      });
     },
   });
 
@@ -457,34 +542,64 @@ export default function Admin() {
   });
 
   const updateRentalMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Rental> }) => {
+    mutationFn: async ({
+      id,
+      data,
+      removedImageUrls,
+    }: {
+      id: string;
+      data: Partial<Rental>;
+      removedImageUrls: string[];
+    }) => {
       setIsUpdating(true);
       try {
         await apiRequest("PATCH", apiUrl(`/api/rentals/${id}`), data);
+        return await deleteRemovedImages(removedImageUrls);
       } finally {
         setIsUpdating(false);
       }
     },
-    onSuccess: () => {
+    onSuccess: (failedImageDeletions) => {
       queryClient.invalidateQueries({ queryKey: ["/api/rentals"] });
-      toast({ title: "Rental updated successfully" });
+      toast({
+        title:
+          failedImageDeletions > 0
+            ? "Rental updated; some images were not deleted"
+            : "Rental updated successfully",
+        description:
+          failedImageDeletions > 0
+            ? `${failedImageDeletions} image${failedImageDeletions === 1 ? "" : "s"} could not be removed from storage.`
+            : undefined,
+        variant: failedImageDeletions > 0 ? "destructive" : "default",
+      });
       resetForm();
       setSelectedRental(null);
     },
   });
 
   const deleteRentalMutation = useMutation({
-    mutationFn: async (id: string) => {
-      setIsDeleting(id);
+    mutationFn: async (rental: Rental) => {
+      setIsDeleting(rental.id);
       try {
-        await apiRequest("DELETE", apiUrl(`/api/rentals/${id}`));
+        await apiRequest("DELETE", apiUrl(`/api/rentals/${rental.id}`));
+        return await deleteRemovedImages(rental.imageUrls ?? []);
       } finally {
         setIsDeleting(null);
       }
     },
-    onSuccess: () => {
+    onSuccess: (failedImageDeletions) => {
       queryClient.invalidateQueries({ queryKey: ["/api/rentals"] });
-      toast({ title: "Rental deleted successfully" });
+      toast({
+        title:
+          failedImageDeletions > 0
+            ? "Rental deleted; some images were not deleted"
+            : "Rental deleted successfully",
+        description:
+          failedImageDeletions > 0
+            ? `${failedImageDeletions} image${failedImageDeletions === 1 ? "" : "s"} could not be removed from storage.`
+            : undefined,
+        variant: failedImageDeletions > 0 ? "destructive" : "default",
+      });
     },
   });
 
@@ -764,6 +879,10 @@ export default function Admin() {
                         updatePropertyMutation.mutate({
                           id: selectedProperty.id,
                           data: propertyData,
+                          removedImageUrls: getRemovedImageUrls(
+                            selectedProperty.imageUrls,
+                            propertyImageUrls,
+                          ),
                         });
                       } else {
                         createPropertyMutation.mutate(propertyData);
@@ -1049,6 +1168,10 @@ export default function Admin() {
                         updateRentalMutation.mutate({
                           id: selectedRental.id,
                           data: rentalData,
+                          removedImageUrls: getRemovedImageUrls(
+                            selectedRental.imageUrls,
+                            rentalImageUrls,
+                          ),
                         });
                       } else {
                         createRentalMutation.mutate(rentalData);
@@ -1193,12 +1316,31 @@ export default function Admin() {
                     <UploadButton setImageUrls={setRentalImageUrls} />
                     <div className="flex gap-2 flex-wrap">
                       {rentalImageUrls.map((url, index) => (
-                        <img
-                          key={index}
-                          src={url}
-                          alt={`Uploaded ${index}`}
-                          className="h-20 rounded"
-                        />
+                        <div key={`${url}-${index}`} className="relative">
+                          <img
+                            src={url}
+                            alt={`Rental image ${index + 1}`}
+                            loading="lazy"
+                            decoding="async"
+                            className="h-20 w-28 rounded object-cover"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute right-1 top-1 h-7 w-7"
+                            aria-label={`Remove rental image ${index + 1}`}
+                            onClick={() =>
+                              setRentalImageUrls((currentUrls) =>
+                                currentUrls.filter(
+                                  (_, imageIndex) => imageIndex !== index,
+                                ),
+                              )
+                            }
+                          >
+                            <X />
+                          </Button>
+                        </div>
                       ))}
                     </div>
                     <div className="flex items-center gap-2">
@@ -1308,6 +1450,10 @@ export default function Admin() {
                         updateCarMutation.mutate({
                           id: selectedCar.id,
                           data: carData,
+                          removedImageUrls: getRemovedImageUrls(
+                            selectedCar.imageUrls,
+                            carImageUrls,
+                          ),
                         });
                       } else {
                         createCarMutation.mutate(carData);
@@ -1401,12 +1547,31 @@ export default function Admin() {
                     <UploadButton setImageUrls={setCarImageUrls} />
                     <div className="flex gap-2 flex-wrap">
                       {carImageUrls.map((url, index) => (
-                        <img
-                          key={index}
-                          src={url}
-                          alt={`Uploaded ${index}`}
-                          className="h-20 rounded"
-                        />
+                        <div key={`${url}-${index}`} className="relative">
+                          <img
+                            src={url}
+                            alt={`Car image ${index + 1}`}
+                            loading="lazy"
+                            decoding="async"
+                            className="h-20 w-28 rounded object-cover"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute right-1 top-1 h-7 w-7"
+                            aria-label={`Remove car image ${index + 1}`}
+                            onClick={() =>
+                              setCarImageUrls((currentUrls) =>
+                                currentUrls.filter(
+                                  (_, imageIndex) => imageIndex !== index,
+                                ),
+                              )
+                            }
+                          >
+                            <X />
+                          </Button>
+                        </div>
                       ))}
                     </div>
                     <div className="flex items-center gap-2">
@@ -1540,7 +1705,7 @@ export default function Admin() {
                           variant="destructive"
                           size="sm"
                           onClick={() =>
-                            deletePropertyMutation.mutate(property.id)
+                            deletePropertyMutation.mutate(property)
                           }
                           disabled={isDeleting === property.id}
                         >
@@ -1636,7 +1801,7 @@ export default function Admin() {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => deleteRentalMutation.mutate(rental.id)}
+                          onClick={() => deleteRentalMutation.mutate(rental)}
                           disabled={isDeleting === rental.id}
                         >
                           {isDeleting === rental.id ? "Deleting..." : "Delete"}
@@ -1682,7 +1847,7 @@ export default function Admin() {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => deleteCarMutation.mutate(car.id)}
+                          onClick={() => deleteCarMutation.mutate(car)}
                           disabled={isDeleting === car.id}
                         >
                           {isDeleting === car.id ? "Deleting..." : "Delete"}

@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { Review } from "@/types";
 import { Input } from "@/components/ui/input";
+import { isAdminEmail } from "@/lib/is-admin";
 
 const formatDate = (value: string) => {
   const date = new Date(value);
@@ -36,7 +37,10 @@ export default function ReviewsPage() {
     {},
   );
   const [replyOpen, setReplyOpen] = useState<string | null>(null);
-  const isAdmin = user?.email === import.meta.env.VITE_ADMIN_EMAIL;
+  const isAdmin = isAdminEmail(
+    user?.email,
+    import.meta.env.VITE_ADMIN_EMAIL,
+  );
   const { data: reviews = [], isLoading } = useQuery<Review[]>({
     queryKey: ["/api/reviews"],
     queryFn: async (): Promise<Review[]> => {
@@ -243,6 +247,7 @@ export default function ReviewsPage() {
                       <div className="mt-4">
                         <Button
                           variant="outline"
+                          className="border-gray-300 bg-white text-gray-900 hover:bg-gray-100 hover:text-gray-900"
                           onClick={() =>
                             setReplyOpen((current) =>
                               current === review.id ? null : review.id,
@@ -262,9 +267,11 @@ export default function ReviewsPage() {
                                 }))
                               }
                               maxLength={2000}
+                              className="border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 focus-visible:ring-primary"
                               placeholder="Write a reply..."
                             />
                             <Button
+                              className="bg-amber-400 text-gray-950 hover:bg-amber-500"
                               onClick={() =>
                                 replyToReview.mutate({
                                   reviewId: review.id,

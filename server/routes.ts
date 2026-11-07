@@ -1,8 +1,15 @@
 import type { Express, Request, Response, NextFunction } from "express";
+import multer from "multer";
 import storage from "./storage";
 import { adminAuth } from "./firebase-admin";
 import { createRouteHandler } from "uploadthing/express";
 import { uploadRouter } from "./uploadthing";
+import {
+  checkCloudinaryConnection,
+  deleteStoredImage,
+  isCloudinaryConfigured,
+  uploadCloudinaryImage,
+} from "./cloudinary-client";
 import nodemailer from "nodemailer";
 import { AuthenticatedRequest } from "./types/express";
 
@@ -50,14 +57,148 @@ export async function registerRoutes(app: Express) {
   ) => {
     const expectedAdminEmail =
       process.env.ADMIN_EMAIL || process.env.VITE_ADMIN_EMAIL;
+    const authenticatedEmail = req.user?.email?.trim().toLowerCase();
+    const normalizedAdminEmail = expectedAdminEmail?.trim().toLowerCase();
 
-    if (!expectedAdminEmail || req.user?.email !== expectedAdminEmail) {
+    if (
+      !normalizedAdminEmail ||
+      !authenticatedEmail ||
+      authenticatedEmail !== normalizedAdminEmail
+    ) {
+      console.warn("Admin authorization denied:", {
+        adminEmailConfigured: Boolean(normalizedAdminEmail),
+        authenticatedEmailPresent: Boolean(authenticatedEmail),
+        emailMatches: Boolean(
+          normalizedAdminEmail &&
+            authenticatedEmail === normalizedAdminEmail,
+        ),
+      });
       res.status(403).json({ message: "Forbidden" });
       return;
     }
 
     next();
   };
+
+  const imageUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 8 * 1024 * 1024, files: 1 },
+  }).single("image");
+
+  app.post(
+    "/api/admin/images/upload",
+    requireAuth,
+    requireAdmin,
+    imageUpload,
+    async (req: AuthenticatedRequest, res: Response) => {
+      if (!req.file) {
+        return res.status(400).json({ message: "Choose an image to upload." });
+      }
+
+      if (!isCloudinaryConfigured()) {
+        return res.status(503).json({
+          message: "Cloudinary credentials are not configured on the server.",
+        });
+      }
+
+      if (!["image/jpeg", "image/png", "image/webp"].includes(req.file.mimetype)) {
+        return res
+          .status(400)
+          .json({ message: "Only JPEG, PNG, and WebP images are supported." });
+      }
+
+      try {
+        const url = await uploadCloudinaryImage(req.file);
+        return res.status(201).json({ url, provider: "cloudinary" });
+      } catch (error) {
+        console.error(
+          "Cloudinary image upload failed:",
+          error instanceof Error ? error.message : "Unknown error",
+        );
+        return res.status(502).json({ message: "Cloudinary upload failed." });
+      }
+    },
+  );
+
+  app.delete(
+    "/api/admin/images",
+    requireAuth,
+    requireAdmin,
+    async (req: AuthenticatedRequest, res: Response) => {
+      const urls: unknown = req.body?.urls;
+      if (
+        !Array.isArray(urls) ||
+        urls.length === 0 ||
+        urls.length > 20 ||
+        urls.some((url) => typeof url !== "string")
+      ) {
+        return res.status(400).json({
+          message: "Provide between 1 and 20 image URLs to delete.",
+        });
+      }
+
+      const results = await Promise.allSettled(
+        [...new Set(urls as string[])].map((url) => deleteStoredImage(url)),
+      );
+      const failedCount = results.filter(
+        (result) => result.status === "rejected",
+      ).length;
+
+      results.forEach((result) => {
+        if (result.status === "rejected") {
+          console.error(
+            "Image deletion failed:",
+            result.reason instanceof Error
+              ? result.reason.message
+              : "Unknown error",
+          );
+        }
+      });
+
+      return res.json({
+        deletedCount: results.length - failedCount,
+        failedCount,
+      });
+    },
+  );
+
+  app.get(
+    "/api/admin/cloudinary/health",
+    requireAuth,
+    requireAdmin,
+    async (_req: AuthenticatedRequest, res: Response) => {
+      if (!isCloudinaryConfigured()) {
+        return res.status(503).json({
+          configured: false,
+          connected: false,
+          message: "Cloudinary credentials are not configured on the server.",
+        });
+      }
+
+      try {
+        const connected = await checkCloudinaryConnection();
+        if (!connected) {
+          return res.status(502).json({
+            configured: true,
+            connected: false,
+            message: "Cloudinary did not confirm the connection.",
+          });
+        }
+
+        return res.json({ configured: true, connected: true });
+      } catch (error) {
+        console.error(
+          "Cloudinary connectivity check failed:",
+          error instanceof Error ? error.message : "Unknown error",
+        );
+        return res.status(502).json({
+          configured: true,
+          connected: false,
+          message: "Unable to connect to Cloudinary. Check server credentials.",
+        });
+      }
+    },
+  );
 
   try {
     app.use(

@@ -10,6 +10,7 @@ import { Property, Review } from "@/types";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { isAdminEmail } from "@/lib/is-admin";
 import { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import {
@@ -68,7 +69,10 @@ export default function PropertyDetails() {
     null,
   );
 
-  const isAdmin = user?.email === import.meta.env.VITE_ADMIN_EMAIL;
+  const isAdmin = isAdminEmail(
+    user?.email,
+    import.meta.env.VITE_ADMIN_EMAIL,
+  );
 
   useEffect(() => {
     setVisiblePhotoCount(1);

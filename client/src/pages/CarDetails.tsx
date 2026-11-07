@@ -8,6 +8,7 @@ import { Car, Review } from "@/types";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { isAdminEmail } from "@/lib/is-admin";
 import { useState, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import React from "react";
@@ -58,7 +59,10 @@ export default function CarDetails() {
 
   const [replyOpen, setReplyOpen] = useState<string | null>(null);
 
-  const isAdmin = user?.email === import.meta.env.VITE_ADMIN_EMAIL;
+  const isAdmin = isAdminEmail(
+    user?.email,
+    import.meta.env.VITE_ADMIN_EMAIL,
+  );
 
   useEffect(() => {
     const hash = window.location.hash;
