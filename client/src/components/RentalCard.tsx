@@ -13,6 +13,8 @@ export function RentalCard({ rental }: { rental: Rental }) {
           <img
             src={rental.imageUrls[0]}
             alt={rental.title}
+            loading="lazy"
+            decoding="async"
             className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
           />
         ) : (

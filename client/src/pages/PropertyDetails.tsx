@@ -57,7 +57,7 @@ export default function PropertyDetails() {
   const [reviewerName, setReviewerName] = useState("");
 
   const [showAllReviews, setShowAllReviews] = useState(false);
-  const [showAllPhotos, setShowAllPhotos] = useState(false);
+  const [visiblePhotoCount, setVisiblePhotoCount] = useState(1);
 
   const [replyMessages, setReplyMessages] = useState<{ [key: string]: string }>(
     {},
@@ -71,7 +71,8 @@ export default function PropertyDetails() {
   const isAdmin = user?.email === import.meta.env.VITE_ADMIN_EMAIL;
 
   useEffect(() => {
-    setShowAllPhotos(false);
+    setVisiblePhotoCount(1);
+    setSelectedImageIndex(null);
   }, [id]);
 
   useEffect(() => {
@@ -132,57 +133,22 @@ export default function PropertyDetails() {
 
       return apiRequest("POST", apiUrl("/api/reviews/reply"), {
         reviewId,
-        replyMessage: reply, // Change from `replyMessage: reply`
-        adminEmail: import.meta.env.VITE_ADMIN_EMAIL, // Ensure admin verification
+        replyMessage: reply.trim(),
       });
     },
-    onMutate: async ({ reviewId, reply }) => {
-      await queryClient.cancelQueries({
-        queryKey: ["/api/reviews/property", id],
-      });
-
-      const previousReviews = queryClient.getQueryData<Review[]>([
-        "/api/reviews/property",
-        id,
-      ]);
-
-      // ✅ Ensure reply is stored correctly
-      queryClient.setQueryData(
-        ["/api/reviews/property", id],
-        (oldReviews: Review[] = []) =>
-          oldReviews.map((review) =>
-            review.id === reviewId
-              ? {
-                  ...review,
-                  reply: { message: reply }, // Ensure reply format matches backend
-                }
-              : review,
-          ),
-      );
-
-      return { previousReviews };
-    },
-
-    onSuccess: async () => {
+    onSuccess: async (_, { reviewId }) => {
+      setReplyOpen(null);
+      setReplyMessages((current) => ({ ...current, [reviewId]: "" }));
       toast({ title: "Reply added successfully!" });
-
-      await queryClient.invalidateQueries({
-        queryKey: ["/api/reviews/property", id],
-      });
+      await queryClient.invalidateQueries({ queryKey: ["/api/reviews"] });
     },
-    onError: (error, _, context) => {
+    onError: (error) => {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to add reply. Please try again.",
+        title: "Could not add reply",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
       });
-
-      if (context?.previousReviews) {
-        queryClient.setQueryData(
-          ["/api/reviews/property", id],
-          context.previousReviews,
-        );
-      }
     },
   });
 
@@ -193,9 +159,6 @@ export default function PropertyDetails() {
     }
 
     replyMutation.mutate({ reviewId, reply: replyMessages[reviewId] });
-
-    // Clear only the replied review's input
-    setReplyMessages((prev) => ({ ...prev, [reviewId]: "" }));
   };
 
   const formatDate = (dateString: string) => {
@@ -222,7 +185,7 @@ export default function PropertyDetails() {
   });
 
   const imageUrls = property?.imageUrls ?? [];
-  const visibleImageUrls = showAllPhotos ? imageUrls : imageUrls.slice(0, 6);
+  const visibleImageUrls = imageUrls.slice(1, visiblePhotoCount);
   const selectedImage =
     selectedImageIndex === null
       ? null
@@ -370,55 +333,61 @@ export default function PropertyDetails() {
       </Helmet>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Image Display Logic */}
-        {(property.imageUrls ?? []).length > 1 ? (
-          <>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {visibleImageUrls.map((url, index) => (
+        {imageUrls.length > 0 ? (
+          <div className="space-y-4">
+            <button
+              type="button"
+              className="relative block aspect-[16/9] max-h-[560px] w-full overflow-hidden rounded-lg bg-muted text-left shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              onClick={() => setSelectedImageIndex(0)}
+              aria-label="Open property image 1 in full size"
+            >
+              <img
+                src={imageUrls[0]}
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                alt={`${property.title} - photo 1`}
+                className="h-full w-full object-cover"
+              />
+            </button>
+            {visibleImageUrls.length > 0 && (
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                {visibleImageUrls.map((url, index) => (
                 <button
                   type="button"
                   key={url}
                   className="relative aspect-[4/3] overflow-hidden rounded-lg bg-muted text-left shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                  onClick={() => setSelectedImageIndex(index)}
-                  aria-label={`Open property image ${index + 1} in full size`}
+                  onClick={() => setSelectedImageIndex(index + 1)}
+                  aria-label={`Open property image ${index + 2} in full size`}
                 >
                   <img
                     src={url}
-                    loading={index === 0 ? "eager" : "lazy"}
-                    fetchPriority={index === 0 ? "high" : "auto"}
+                    loading="lazy"
+                    fetchPriority="low"
                     decoding="async"
-                    alt={`Image ${index + 1}`}
+                    alt={`${property.title} - photo ${index + 2}`}
                     className="h-full w-full object-cover transition-transform duration-200 hover:scale-105"
                   />
                 </button>
-              ))}
-            </div>
-            {!showAllPhotos && imageUrls.length > visibleImageUrls.length && (
+                ))}
+              </div>
+            )}
+            {visiblePhotoCount < imageUrls.length && (
               <Button
-                className="mt-4"
                 variant="outline"
-                onClick={() => setShowAllPhotos(true)}
+                onClick={() =>
+                  setVisiblePhotoCount((currentCount) =>
+                    Math.min(currentCount + 6, imageUrls.length),
+                  )
+                }
               >
-                Show all {imageUrls.length} photos
+                Load {Math.min(6, imageUrls.length - visiblePhotoCount)} more
+                photos
               </Button>
             )}
-          </>
-        ) : property.imageUrls?.length === 1 ? (
-          <button
-            type="button"
-            className="w-full overflow-hidden rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-            onClick={() => setSelectedImageIndex(0)}
-            aria-label="Open property image in full size"
-          >
-            <img
-              src={property.imageUrls[0]}
-              fetchPriority="high"
-              decoding="async"
-              alt="Property Image"
-              className="h-[400px] w-full object-cover transition-transform duration-200 hover:scale-[1.02]"
-            />
-          </button>
+          </div>
         ) : (
-          <div className="col-span-2 text-center text-muted-foreground">
+          <div className="flex aspect-[16/9] items-center justify-center rounded-lg bg-muted text-muted-foreground">
             No images available
           </div>
         )}
@@ -699,9 +668,22 @@ export default function PropertyDetails() {
                     </div>
                   ) : (
                     <div>
-                      {/* Reply Button - Only for Admin */}
-                      {/* Show Reply Form only if there's no reply */}
-                      {replyOpen === reviews[0].id && !reviews[0].reply && (
+                      {isAdmin && (
+                        <Button
+                          className="mt-2 text-blue-500 text-sm"
+                          variant="outline"
+                          onClick={() =>
+                            setReplyOpen((current) =>
+                              current === reviews[0].id
+                                ? null
+                                : reviews[0].id,
+                            )
+                          }
+                        >
+                          {replyOpen === reviews[0].id ? "Cancel" : "Reply"}
+                        </Button>
+                      )}
+                      {isAdmin && replyOpen === reviews[0].id && (
                         <div className="mt-2">
                           <Textarea
                             value={replyMessages[reviews[0].id] || ""}
@@ -709,11 +691,15 @@ export default function PropertyDetails() {
                               handleReplyChange(reviews[0].id, e.target.value)
                             }
                             placeholder="Write a reply..."
+                            maxLength={2000}
                           />
                           <Button
                             className="mt-2"
                             onClick={() => handleReply(reviews[0].id)}
-                            disabled={replyMutation.isPending}
+                            disabled={
+                              !replyMessages[reviews[0].id]?.trim() ||
+                              replyMutation.isPending
+                            }
                           >
                             {replyMutation.isPending ? "Posting..." : "Reply"}
                           </Button>

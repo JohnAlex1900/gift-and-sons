@@ -20,17 +20,22 @@ export function CarCard({ car }: CarCardProps) {
 
   return (
     <Card className="overflow-hidden">
-      {!imageLoaded && <div className="h-48 bg-muted animate-pulse"></div>}
+      {!imageLoaded && (
+        <div className="aspect-[4/3] bg-muted animate-pulse"></div>
+      )}
       <img
         src={
           car.imageUrls?.[0] ||
           "https://images.unsplash.com/photo-1526726538690-5cbf956ae2fd?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
         }
+        loading="lazy"
+        decoding="async"
         alt={car.title}
-        className={`w-full h-48 object-cover transition-opacity ${
+        className={`w-full aspect-[4/3] object-cover transition-opacity ${
           imageLoaded ? "opacity-100" : "opacity-0"
         }`}
         onLoad={() => setImageLoaded(true)}
+        onError={() => setImageLoaded(true)}
       />
       <CardHeader>
         <CardTitle className="text-xl">{car.title}</CardTitle>

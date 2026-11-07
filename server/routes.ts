@@ -304,20 +304,35 @@ export async function registerRoutes(app: Express) {
     requireAuth,
     requireAdmin,
     async (req: AuthenticatedRequest, res: Response) => {
+      const reviewId =
+        typeof req.body?.reviewId === "string" ? req.body.reviewId.trim() : "";
+      const replyMessage =
+        typeof req.body?.replyMessage === "string"
+          ? req.body.replyMessage.trim()
+          : "";
+
+      if (!reviewId || !replyMessage) {
+        return res
+          .status(400)
+          .json({ message: "Review ID and reply text are required." });
+      }
+
+      if (replyMessage.length > 2000) {
+        return res
+          .status(400)
+          .json({ message: "Reply must be 2,000 characters or fewer." });
+      }
+
       try {
-        const { reviewId, replyMessage } = req.body;
-
-        if (!reviewId || !replyMessage) {
-          return res.status(400).json({ error: "Missing required fields" });
-        }
-
-        // Call storage function to add the reply
         await storage.addReplyToReview(reviewId, replyMessage);
-
         res.json({ success: true, message: "Reply added successfully" });
       } catch (error) {
         console.error("❌ Error adding reply:", error);
-        res.status(500).json({ error: "Internal server error" });
+        if (error instanceof Error && error.message === "Review not found") {
+          return res.status(404).json({ message: error.message });
+        }
+
+        res.status(500).json({ message: "Could not save reply." });
       }
     },
   );

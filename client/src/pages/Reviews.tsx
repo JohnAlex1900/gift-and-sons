@@ -32,6 +32,10 @@ export default function ReviewsPage() {
   const [message, setMessage] = useState("");
   const [rating, setRating] = useState(5);
   const [reviewerName, setReviewerName] = useState("");
+  const [replyMessages, setReplyMessages] = useState<Record<string, string>>(
+    {},
+  );
+  const [replyOpen, setReplyOpen] = useState<string | null>(null);
   const isAdmin = user?.email === import.meta.env.VITE_ADMIN_EMAIL;
   const { data: reviews = [], isLoading } = useQuery<Review[]>({
     queryKey: ["/api/reviews"],
@@ -77,6 +81,38 @@ export default function ReviewsPage() {
           error instanceof Error
             ? error.message
             : "Please try again in a moment.",
+      });
+    },
+  });
+
+  const replyToReview = useMutation({
+    mutationFn: async ({
+      reviewId,
+      reply,
+    }: {
+      reviewId: string;
+      reply: string;
+    }) => {
+      const normalizedReply = reply.trim();
+      if (!normalizedReply) throw new Error("Reply cannot be empty.");
+
+      return apiRequest("POST", apiUrl("/api/reviews/reply"), {
+        reviewId,
+        replyMessage: normalizedReply,
+      });
+    },
+    onSuccess: async (_, { reviewId }) => {
+      setReplyMessages((current) => ({ ...current, [reviewId]: "" }));
+      setReplyOpen(null);
+      await queryClient.invalidateQueries({ queryKey: ["/api/reviews"] });
+      toast({ title: "Reply added successfully." });
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Could not add reply",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
       });
     },
   });
@@ -201,6 +237,51 @@ export default function ReviewsPage() {
                         <p className="mt-1 whitespace-pre-wrap">
                           {review.reply.message}
                         </p>
+                      </div>
+                    )}
+                    {isAdmin && !review.reply?.message && (
+                      <div className="mt-4">
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            setReplyOpen((current) =>
+                              current === review.id ? null : review.id,
+                            )
+                          }
+                        >
+                          {replyOpen === review.id ? "Cancel" : "Reply"}
+                        </Button>
+                        {replyOpen === review.id && (
+                          <div className="mt-3 space-y-2">
+                            <Textarea
+                              value={replyMessages[review.id] ?? ""}
+                              onChange={(event) =>
+                                setReplyMessages((current) => ({
+                                  ...current,
+                                  [review.id]: event.target.value,
+                                }))
+                              }
+                              maxLength={2000}
+                              placeholder="Write a reply..."
+                            />
+                            <Button
+                              onClick={() =>
+                                replyToReview.mutate({
+                                  reviewId: review.id,
+                                  reply: replyMessages[review.id] ?? "",
+                                })
+                              }
+                              disabled={
+                                !replyMessages[review.id]?.trim() ||
+                                replyToReview.isPending
+                              }
+                            >
+                              {replyToReview.isPending
+                                ? "Posting…"
+                                : "Post reply"}
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </CardContent>

@@ -15,6 +15,7 @@ export default function RentalDetails() {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
     null,
   );
+  const [visiblePhotoCount, setVisiblePhotoCount] = useState(1);
 
   const { data: rental, isLoading } = useQuery<Rental | null>({
     queryKey: [`/api/rentals/${id}`],
@@ -24,10 +25,16 @@ export default function RentalDetails() {
   });
 
   const imageUrls = rental?.imageUrls ?? [];
+  const visibleImageUrls = imageUrls.slice(1, visiblePhotoCount);
   const selectedImage =
     selectedImageIndex === null
       ? null
       : (imageUrls[selectedImageIndex] ?? null);
+
+  useEffect(() => {
+    setVisiblePhotoCount(1);
+    setSelectedImageIndex(null);
+  }, [id]);
 
   const showPreviousImage = () => {
     if (imageUrls.length < 2 || selectedImageIndex === null) return;
@@ -124,40 +131,61 @@ export default function RentalDetails() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Image Display Logic */}
-        {(rental.imageUrls ?? []).length > 1 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {rental.imageUrls?.map((url, index) => (
+        {imageUrls.length > 0 ? (
+          <div className="space-y-4">
+            <button
+              type="button"
+              className="relative block aspect-[16/9] max-h-[560px] w-full overflow-hidden rounded-lg bg-muted text-left shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              onClick={() => setSelectedImageIndex(0)}
+              aria-label="Open rental image 1 in full size"
+            >
+              <img
+                src={imageUrls[0]}
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                alt={`${rental.title} - photo 1`}
+                className="h-full w-full object-cover"
+              />
+            </button>
+            {visibleImageUrls.length > 0 && (
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                {visibleImageUrls.map((url, index) => (
               <button
                 type="button"
-                key={url}
-                className="relative overflow-hidden rounded-lg text-left shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                onClick={() => setSelectedImageIndex(index)}
-                aria-label={`Open rental image ${index + 1} in full size`}
+                key={`${url}-${index}`}
+                className="relative aspect-[4/3] overflow-hidden rounded-lg bg-muted text-left shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                onClick={() => setSelectedImageIndex(index + 1)}
+                aria-label={`Open rental image ${index + 2} in full size`}
               >
                 <img
                   src={url}
                   loading="lazy"
-                  alt={`Image ${index + 1}`}
-                  className="h-48 w-full object-cover transition-transform duration-200 hover:scale-105"
+                  fetchPriority="low"
+                  decoding="async"
+                  alt={`${rental.title} - photo ${index + 2}`}
+                  className="h-full w-full object-cover transition-transform duration-200 hover:scale-105"
                 />
               </button>
-            ))}
+                ))}
+              </div>
+            )}
+            {visiblePhotoCount < imageUrls.length && (
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setVisiblePhotoCount((currentCount) =>
+                    Math.min(currentCount + 6, imageUrls.length),
+                  )
+                }
+              >
+                Load {Math.min(6, imageUrls.length - visiblePhotoCount)} more
+                photos
+              </Button>
+            )}
           </div>
-        ) : rental.imageUrls?.length === 1 ? (
-          <button
-            type="button"
-            className="w-full overflow-hidden rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-            onClick={() => setSelectedImageIndex(0)}
-            aria-label="Open rental image in full size"
-          >
-            <img
-              src={rental.imageUrls[0]}
-              alt="Rental Image"
-              className="h-[400px] sm:h-[500px] w-full object-cover transition-transform duration-200 hover:scale-[1.02]"
-            />
-          </button>
         ) : (
-          <div className="col-span-2 text-center py-20 bg-muted rounded-lg text-muted-foreground">
+          <div className="flex aspect-[16/9] items-center justify-center rounded-lg bg-muted text-muted-foreground">
             No images available for this rental
           </div>
         )}

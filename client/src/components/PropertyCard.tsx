@@ -28,13 +28,15 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
   return (
     <Card className="overflow-hidden">
-      {!imageLoaded && <div className="h-48 bg-muted animate-pulse"></div>}
+      {!imageLoaded && (
+        <div className="aspect-[4/3] bg-muted animate-pulse"></div>
+      )}
       <img
         src={imageSrc}
         loading="lazy"
         decoding="async"
         alt={property.title}
-        className={`w-full h-48 object-cover transition-opacity ${
+        className={`w-full aspect-[4/3] object-cover transition-opacity ${
           imageLoaded ? "opacity-100" : "opacity-0"
         }`}
         onLoad={() => setImageLoaded(true)}

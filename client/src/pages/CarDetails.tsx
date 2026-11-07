@@ -50,6 +50,7 @@ export default function CarDetails() {
   const [reviewMessage, setReviewMessage] = useState("");
 
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [visiblePhotoCount, setVisiblePhotoCount] = useState(1);
 
   const [replyMessages, setReplyMessages] = useState<{ [key: string]: string }>(
     {}
@@ -116,57 +117,22 @@ export default function CarDetails() {
 
       return apiRequest("POST", apiUrl("/api/reviews/reply"), {
         reviewId,
-        replyMessage: reply, // Change from `replyMessage: reply`
-        adminEmail: import.meta.env.VITE_ADMIN_EMAIL, // Ensure admin verification
+        replyMessage: reply.trim(),
       });
     },
-    onMutate: async ({ reviewId, reply }) => {
-      await queryClient.cancelQueries({
-        queryKey: ["/api/reviews/car", id],
-      });
-
-      const previousReviews = queryClient.getQueryData<Review[]>([
-        "/api/reviews/car",
-        id,
-      ]);
-
-      // ✅ Ensure reply is stored correctly
-      queryClient.setQueryData(
-        ["/api/reviews/car", id],
-        (oldReviews: Review[] = []) =>
-          oldReviews.map((review) =>
-            review.id === reviewId
-              ? {
-                  ...review,
-                  reply: { message: reply }, // Ensure reply format matches backend
-                }
-              : review
-          )
-      );
-
-      return { previousReviews };
-    },
-
-    onSuccess: async () => {
+    onSuccess: async (_, { reviewId }) => {
+      setReplyOpen(null);
+      setReplyMessages((current) => ({ ...current, [reviewId]: "" }));
       toast({ title: "Reply added successfully!" });
-
-      await queryClient.invalidateQueries({
-        queryKey: ["/api/reviews/car", id],
-      });
+      await queryClient.invalidateQueries({ queryKey: ["/api/reviews"] });
     },
-    onError: (error, _, context) => {
+    onError: (error) => {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to add reply. Please try again.",
+        title: "Could not add reply",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
       });
-
-      if (context?.previousReviews) {
-        queryClient.setQueryData(
-          ["/api/reviews/car", id],
-          context.previousReviews
-        );
-      }
     },
   });
 
@@ -177,9 +143,6 @@ export default function CarDetails() {
     }
 
     replyMutation.mutate({ reviewId, reply: replyMessages[reviewId] });
-
-    // Clear only the replied review's input
-    setReplyMessages((prev) => ({ ...prev, [reviewId]: "" }));
   };
 
   const formatDate = (dateString: string) => {
@@ -206,6 +169,12 @@ export default function CarDetails() {
     },
     staleTime: 60000,
   });
+
+  const imageUrls = car?.imageUrls ?? [];
+
+  useEffect(() => {
+    setVisiblePhotoCount(1);
+  }, [id]);
 
   const reviewMutation = useMutation({
     mutationFn: async ({
@@ -331,29 +300,49 @@ export default function CarDetails() {
       </Helmet>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Image Display Logic */}
-        {(car.imageUrls ?? []).length > 1 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {car.imageUrls?.map((url, index) => (
-              <div key={index} className="relative">
-                <img
-                  src={url}
-                  loading="lazy"
-                  alt={`Image ${index + 1}`}
-                  className="w-full h-48 object-cover rounded-lg shadow-md"
-                />
+        {imageUrls.length > 0 ? (
+          <div className="space-y-4">
+            <div className="aspect-[16/9] max-h-[560px] overflow-hidden rounded-lg bg-muted">
+              <img
+                src={imageUrls[0]}
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                alt={`${car.title} - photo 1`}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            {visiblePhotoCount > 1 && (
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                {imageUrls.slice(1, visiblePhotoCount).map((url, index) => (
+                  <img
+                    key={`${url}-${index}`}
+                    src={url}
+                    loading="lazy"
+                    fetchPriority="low"
+                    decoding="async"
+                    alt={`${car.title} - photo ${index + 2}`}
+                    className="aspect-[4/3] w-full rounded-lg bg-muted object-cover"
+                  />
+                ))}
               </div>
-            ))}
-          </div>
-        ) : car.imageUrls?.length === 1 ? (
-          <div className="w-full">
-            <img
-              src={car.imageUrls[0]}
-              alt="Car Image"
-              className="w-full h-[400px] object-cover rounded-lg"
-            />
+            )}
+            {visiblePhotoCount < imageUrls.length && (
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setVisiblePhotoCount((currentCount) =>
+                    Math.min(currentCount + 6, imageUrls.length),
+                  )
+                }
+              >
+                Load {Math.min(6, imageUrls.length - visiblePhotoCount)} more
+                photos
+              </Button>
+            )}
           </div>
         ) : (
-          <div className="col-span-2 text-center text-muted-foreground">
+          <div className="flex aspect-[16/9] items-center justify-center rounded-lg bg-muted text-muted-foreground">
             No images available
           </div>
         )}

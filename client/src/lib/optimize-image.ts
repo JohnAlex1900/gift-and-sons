@@ -1,7 +1,8 @@
-const MAX_IMAGE_WIDTH = 1920;
-const MAX_IMAGE_HEIGHT = 1440;
+const MAX_IMAGE_WIDTH = 1600;
+const MAX_IMAGE_HEIGHT = 1200;
 const MAX_FILE_SIZE = 8 * 1024 * 1024;
-const SKIP_OPTIMIZATION_BELOW = 350 * 1024;
+const MAX_INPUT_FILE_SIZE = 32 * 1024 * 1024;
+const SKIP_OPTIMIZATION_BELOW = 300 * 1024;
 
 const canvasToWebp = (canvas: HTMLCanvasElement) =>
   new Promise<Blob>((resolve, reject) => {
@@ -14,11 +15,17 @@ const canvasToWebp = (canvas: HTMLCanvasElement) =>
         }
       },
       "image/webp",
-      0.82,
+      0.8,
     );
   });
 
 export async function optimizeImage(file: File): Promise<File> {
+  if (file.size > MAX_INPUT_FILE_SIZE) {
+    throw new Error(
+      `${file.name} is too large to process. Choose an image smaller than 32 MB.`,
+    );
+  }
+
   if (typeof createImageBitmap !== "function") {
     if (file.size > MAX_FILE_SIZE) {
       throw new Error(
@@ -29,7 +36,18 @@ export async function optimizeImage(file: File): Promise<File> {
     return file;
   }
 
-  const image = await createImageBitmap(file);
+  let image: ImageBitmap;
+  try {
+    image = await createImageBitmap(file);
+  } catch {
+    if (file.size <= MAX_FILE_SIZE) {
+      return file;
+    }
+
+    throw new Error(
+      `${file.name} could not be optimized by this browser. Choose a JPEG, PNG, or WebP image smaller than 8 MB.`,
+    );
+  }
 
   try {
     const scale = Math.min(

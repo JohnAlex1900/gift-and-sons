@@ -905,12 +905,19 @@ export default function Admin() {
                       />
                     </div>
                     <UploadButton setImageUrls={setPropertyImageUrls} />
+                    <p className="text-sm text-muted-foreground">
+                      Large uploads are optimized automatically. To replace an
+                      older photo, remove it here, upload the original again,
+                      then save the property.
+                    </p>
                     <div className="flex gap-2 flex-wrap">
                       {propertyImageUrls.map((url, index) => (
                         <div key={`${url}-${index}`} className="relative">
                           <img
                             src={url}
                             alt={`Property image ${index + 1}`}
+                            loading="lazy"
+                            decoding="async"
                             className="h-20 w-28 rounded object-cover"
                           />
                           <Button
